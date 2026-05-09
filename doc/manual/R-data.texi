@@ -1148,9 +1148,9 @@ and lists) ones.
 There are limitations on the types of data that @R{} handles well.
 Since all data being manipulated by @R{} are resident in memory, and
 several copies of the data can be created during execution of a
-function, @R{} is not well suited to extremely large data sets.  Data
-objects approaching the size of available RAM can cause
-@R{} to run out of memory, especially on a 32-bit operating system.
+function, @R{} is not always the best fit for very large data sets:
+once the working data approaches the available RAM, @R{} will start
+to struggle (more so on 32-bit builds, which are now rare).
 
 @R{} does not easily support concurrent access to data.  That is, if
 more than one user is accessing, and perhaps updating, the same data,
@@ -1364,21 +1364,24 @@ queries, and to retrieve the result as a whole as a
 data frame or in pieces (usually as groups of rows).  
 
 Most are tied to one @abbr{DBMS} and build on the unified `front-end'
-package @CRANpkg{DBI} (@uref{https://dbi.r-dbi.org/}); see the
-@uref{https://www.r-dbi.org/, R-DBI} project for the
-specification and the canonical back-ends.  Also on
-@acronym{CRAN} are the back-ends @CRANpkg{RSQLite} (which works with the
-bundled @abbr{DBMS} @code{SQLite}, @uref{https://www.sqlite.org/index.html}),
-@CRANpkg{RMariaDB} (the modern replacement for the legacy
-@CRANpkg{RMySQL}, for MySQL/MariaDB),
-@CRANpkg{RPostgres} (replacing @CRANpkg{RPostgreSQL}, for PostgreSQL),
-@CRANpkg{ROracle}, @CRANpkg{odbc} (a @CRANpkg{DBI}-compliant
-interface to any @abbr{ODBC} driver, see
-@uref{https://odbc.r-dbi.org/}), @CRANpkg{duckdb} (for the embedded
-analytical @abbr{DBMS} DuckDB, @uref{https://duckdb.org/}) and
-@CRANpkg{RJDBC} (which uses Java and can connect to any @abbr{DBMS} that has a
-@abbr{JDBC} driver).  @CRANpkg{RODBC} is not tied to one @abbr{DBMS}
-either, but uses its own (non-@CRANpkg{DBI}) interface.
+package @CRANpkg{DBI} (@uref{https://dbi.r-dbi.org/}); individual
+@abbr{DBMS}s are reached through `back-end' packages that implement
+that interface.  The @uref{https://www.r-dbi.org/, R-DBI} project
+maintains the most widely used back-ends: @CRANpkg{RSQLite} for the
+bundled @abbr{DBMS} SQLite (@uref{https://www.sqlite.org/index.html}),
+@CRANpkg{RMariaDB} for MySQL (@uref{https://www.mysql.com}) and its
+fork MariaDB (@uref{https://mariadb.org/}), @CRANpkg{RPostgres} for
+PostgreSQL (@uref{https://www.postgresql.org/}), and @CRANpkg{odbc}
+(@uref{https://odbc.r-dbi.org/}) for any @abbr{DBMS} reachable through
+an @abbr{ODBC} driver.  The earlier back-ends @CRANpkg{RMySQL} and
+@CRANpkg{RPostgreSQL} are still on @acronym{CRAN}; @CRANpkg{RMariaDB}
+and @CRANpkg{RPostgres} are the recommended successors.  Oracle is
+supported by @CRANpkg{ROracle}.  Any @abbr{DBMS} with a @abbr{JDBC}
+driver can be reached through @CRANpkg{RJDBC} (which uses Java).  The
+embedded analytical @abbr{DBMS} DuckDB (@uref{https://duckdb.org/}) is
+provided by @CRANpkg{duckdb}, which also implements @CRANpkg{DBI}.
+@CRANpkg{RODBC} is not tied to one @abbr{DBMS} either, but uses its
+own (non-@CRANpkg{DBI}) interface.
 
 @c The BioConductor project has updated @pkg{RdbiPgSQL} (formerly on
 @c @acronym{CRAN} ca 2000), a first-generation interface to PostgreSQL.
