@@ -1148,9 +1148,9 @@ and lists) ones.
 There are limitations on the types of data that @R{} handles well.
 Since all data being manipulated by @R{} are resident in memory, and
 several copies of the data can be created during execution of a
-function, @R{} is not always the best fit for very large data sets:
-once the working data approaches the available RAM, @R{} will start
-to struggle (more so on 32-bit builds, which are now rare).
+function, @R{} is not well suited to extremely large data sets.  Data
+objects approaching the size of available RAM can cause
+@R{} to run out of memory, especially on a 32-bit operating system.
 
 @R{} does not easily support concurrent access to data.  That is, if
 more than one user is accessing, and perhaps updating, the same data,
@@ -1189,13 +1189,12 @@ extract a 10% sample of the data, to cross-tabulate data to produce a
 multi-dimensional contingency table, and to extract data group by group
 from a database for separate analysis.
 
-Increasingly OSes and applications are themselves making use of
-@abbr{DBMS}s for these reasons, so it is nowadays likely that one is
-already installed on your machine.
-@uref{https://en.wikipedia.org/wiki/Akonadi, Akonadi} is used by KDE
-to store personal information; several macOS applications, including
-Mail and Address Book, use SQLite, as do many web browsers and
-mobile platforms.
+Increasingly OSes are themselves making use of @abbr{DBMS}s for these reasons,
+so it is nowadays likely that one will be already installed on your
+machine.  @uref{https://en.wikipedia.org/wiki/Akonadi, Akonadi}
+is used by KDE to store personal information.  Several macOS
+applications, including Mail and Address Book, use SQLite, as do
+many web browsers and mobile platforms.
 @c https://www.actualtech.com/sqlite_applications.php
 
 
@@ -1204,20 +1203,18 @@ mobile platforms.
 
 Traditionally there had been large (and expensive) commercial @abbr{RDBMS}s
 (@uref{https://www.ibm.com/products/informix, Informix};
-@uref{https://www.oracle.com, Oracle};
+@uref{https://www.oracle.com, Oracle}; 
 @I{Sybase}/SAP @acronym{ASE};
 @uref{https://www.ibm.com/db2, IBM's DB2};
 @uref{https://www.microsoft.com/sql-server/, Microsoft @acronym{SQL}
 Server}) and academic and small-system databases (such as
-MySQL@footnote{and forks, notably MariaDB.}, PostgreSQL, SQLite,
-Microsoft Access, @dots{}), the former marked out by much greater
-emphasis on data security features.  By now the line is more or less
-gone: PostgreSQL and MySQL/MariaDB rival the commercial products
-feature for feature, free `express' editions of the commercial
-@abbr{DBMS}s are widely available, and embedded engines such as
-@uref{https://www.sqlite.org/, SQLite} and
-@uref{https://duckdb.org/, DuckDB} provide serverless options that
-need no installation at all.
+MySQL@footnote{and forks, notably MariaDB.}, PostgreSQL, SQLite, Microsoft
+Access, @dots{}), the former marked out by much greater emphasis on data
+security features.  By now the line is essentially gone: PostgreSQL and
+MySQL/MariaDB rival the commercial products feature for feature, free
+`express' editions of the commercial @abbr{DBMS}s are widely available,
+and embedded engines such as @uref{https://www.sqlite.org/, SQLite} and
+@uref{https://duckdb.org/, DuckDB} need no installation at all.
 
 @cindex ODBC
 @cindex Open Database Connectivity
@@ -1228,18 +1225,15 @@ these data sources.  It originated on Windows (see
 @uref{https://docs.microsoft.com/en-us/sql/odbc/microsoft-open-database-connectivity-odbc})
 but is also implemented on Linux/Unix/macOS.
 
-Most of the packages described later in this chapter are clients for
-client/server databases.  The database can reside on the same machine
-or (more often) remotely.  Some packages instead embed the database
-directly into the @R{} process (notably @CRANpkg{RSQLite} and
-@CRANpkg{duckdb}), which is convenient for testing, teaching and
-analytical workloads on local files.  There is an @acronym{ISO}/
-@acronym{IEC}@tie{}9075 standard for an interface language called
-@acronym{SQL} (Structured Query Language, sometimes pronounced
-`sequel': see Bowman @emph{@I{et al.}@:} 1996 and Kline and Kline
-2001), revised regularly (the current revision is
-@acronym{SQL}:2023), which these @abbr{DBMS}s support to varying
-degrees.
+Most of the packages described later in this chapter provide clients to
+client/server databases.  The database can reside on the same machine or
+(more often) remotely; some packages instead embed the database directly
+into the @R{} process (notably @CRANpkg{RSQLite} and @CRANpkg{duckdb}).
+There is an @acronym{ISO} standard, @acronym{ISO}/@acronym{IEC}@tie{}9075,
+the current revision being @acronym{SQL}:2023, for
+an interface language called @acronym{SQL} (Structured Query Language,
+sometimes pronounced `sequel': see Bowman @emph{@I{et al.}@:} 1996 and Kline
+and Kline 2001) which these @abbr{DBMS}s support to varying degrees.
 
 
 @node SQL queries
@@ -1350,44 +1344,41 @@ timezone}.  Other types widely implemented are @code{text} and
 @code{blob}, for large blocks of text and binary data, respectively.
 
 The more comprehensive of the @R{} interface packages hide the type
-conversion issues from the user.  Modern @CRANpkg{DBI}-based packages
+conversion issues from the user; modern @CRANpkg{DBI}-based packages
 map the common @R{} types (@code{integer}, @code{double},
 @code{character}, @code{logical}, @code{Date}, @code{POSIXct},
-@code{raw}) to the matching @acronym{SQL} types automatically, so
-this layer is rarely visible.  Many @abbr{DBMS}s now also offer
-richer types such as @code{json}, arrays and @code{uuid}; consult
-your @abbr{DBMS} documentation for the specifics.
+@code{raw}) to the matching @acronym{SQL} types automatically.  Many
+@abbr{DBMS}s now also offer richer types such as @code{json}, arrays
+and @code{uuid}; consult your @abbr{DBMS} documentation for the
+specifics.
 
 
 @node R interface packages
 @section R interface packages
 
 There are several packages available on @acronym{CRAN} to help @R{}
-communicate with @abbr{DBMS}s.  They provide different levels of
-abstraction.  Some provide means to copy whole data frames to and
-from databases.  All have functions to select data within the
-database via @acronym{SQL} queries, and to retrieve the result as a
-whole as a data frame or in pieces (usually as groups of rows).
+communicate with @abbr{DBMS}s.  They provide different levels of abstraction.
+Some provide means to copy whole data frames to and from databases.  All
+have functions to select data within the database via @acronym{SQL}
+queries, and to retrieve the result as a whole as a
+data frame or in pieces (usually as groups of rows).  
 
-The @CRANpkg{DBI} package (@uref{https://dbi.r-dbi.org/}) defines a
-unified `front-end' that applications and downstream packages
-program against; individual @abbr{DBMS}s are reached through
-`back-end' packages that implement that interface.  The
-@uref{https://www.r-dbi.org/, R-DBI} project maintains the most
-widely used back-ends: @CRANpkg{RSQLite} for the embedded
-@abbr{DBMS} SQLite (@uref{https://www.sqlite.org/}),
-@CRANpkg{RMariaDB} for MySQL (@uref{https://www.mysql.com}) and its
-fork MariaDB (@uref{https://mariadb.org/}), @CRANpkg{RPostgres} for
-PostgreSQL (@uref{https://www.postgresql.org/}), and @CRANpkg{odbc}
-(@uref{https://odbc.r-dbi.org/}) for any @abbr{DBMS} reachable
-through an @abbr{ODBC} driver.  The earlier back-ends
-@CRANpkg{RMySQL} and @CRANpkg{RPostgreSQL} are still on
-@acronym{CRAN}; @CRANpkg{RMariaDB} and @CRANpkg{RPostgres} are the
-recommended successors.  Oracle is supported by @CRANpkg{ROracle}.
-Any @abbr{DBMS} with a @abbr{JDBC} driver can be reached through
-@CRANpkg{RJDBC} (which uses Java).  The embedded analytical
-@abbr{DBMS} DuckDB (@uref{https://duckdb.org/}) is provided by
-@CRANpkg{duckdb}, which also implements @CRANpkg{DBI}.
+Most are tied to one @abbr{DBMS} and build on the unified `front-end'
+package @CRANpkg{DBI} (@uref{https://dbi.r-dbi.org/}); see the
+@uref{https://www.r-dbi.org/, R-DBI} project for the
+specification and the canonical back-ends.  Also on
+@acronym{CRAN} are the back-ends @CRANpkg{RSQLite} (which works with the
+bundled @abbr{DBMS} @code{SQLite}, @uref{https://www.sqlite.org/index.html}),
+@CRANpkg{RMariaDB} (the modern replacement for the legacy
+@CRANpkg{RMySQL}, for MySQL/MariaDB),
+@CRANpkg{RPostgres} (replacing @CRANpkg{RPostgreSQL}, for PostgreSQL),
+@CRANpkg{ROracle}, @CRANpkg{odbc} (a @CRANpkg{DBI}-compliant
+interface to any @abbr{ODBC} driver, see
+@uref{https://odbc.r-dbi.org/}), @CRANpkg{duckdb} (for the embedded
+analytical @abbr{DBMS} DuckDB, @uref{https://duckdb.org/}) and
+@CRANpkg{RJDBC} (which uses Java and can connect to any @abbr{DBMS} that has a
+@abbr{JDBC} driver).  @CRANpkg{RODBC} is not tied to one @abbr{DBMS}
+either, but uses its own (non-@CRANpkg{DBI}) interface.
 
 @c The BioConductor project has updated @pkg{RdbiPgSQL} (formerly on
 @c @acronym{CRAN} ca 2000), a first-generation interface to PostgreSQL.
@@ -1395,25 +1386,24 @@ Any @abbr{DBMS} with a @abbr{JDBC} driver can be reached through
 @pkg{PL/R} (@uref{https://github.com/postgres-plr/plr}) is a project to
 embed R into PostgreSQL.
 
-Package @CRANpkg{mongolite} provides an @R{} interface to `MongoDB'
-(@uref{https://en.wikipedia.org/wiki/MongoDB}) databases using
-@pkg{mongodb}'s C driver; queries are written in JavaScript rather
-than @acronym{SQL}.
+Package @CRANpkg{mongolite} provides an @R{} interface to
+`MongoDB' (@uref{https://en.wikipedia.org/wiki/MongoDB}) databases,
+which are queried using JavaScript rather than SQL,
+using @pkg{mongodb}'s C driver.
 
 Two helpers are worth knowing about even when they are not the main
 interface.  Package @CRANpkg{dbplyr}
 (@uref{https://dbplyr.tidyverse.org/}) is a `dplyr' back-end that
-translates ordinary @R{} data-manipulation code into @acronym{SQL}
-and sends it to a @CRANpkg{DBI} connection, so that one can work
-with remote tables almost as if they were data frames.  Package
+translates ordinary @R{} data-manipulation code into @acronym{SQL} and
+sends it to a @CRANpkg{DBI} connection, so that one can work with
+remote tables almost as if they were data frames.  Package
 @CRANpkg{pool} (@uref{https://rstudio.github.io/pool/}) maintains a
-pool of @CRANpkg{DBI} connections, which is convenient for
-long-running interactive applications such as Shiny.
+pool of @CRANpkg{DBI} connections, useful for long-running interactive
+applications such as Shiny.
 
 For an up-to-date overview of @R{} packages for databases, see the
-@CRANpkg{DBI} project home page (@uref{https://www.r-dbi.org/}), the
 @uref{https://CRAN.R-project.org/view=Databases, CRAN Task View on
-Databases}, and the database section of Posit's solutions site
+Databases} and the database section of Posit's solutions site
 (@uref{https://solutions.posit.co/connections/db/}).
 
 
@@ -1421,52 +1411,45 @@ Databases}, and the database section of Posit's solutions site
 @subsection Packages using DBI
 @cindex DBI
 
-The current generation of database back-ends ---
-@CRANpkg{RSQLite}, @CRANpkg{RMariaDB}, @CRANpkg{RPostgres},
-@CRANpkg{ROracle}, @CRANpkg{odbc}, @CRANpkg{duckdb},
-@CRANpkg{RJDBC} --- all build on @CRANpkg{DBI}, which defines a
-small set of generics that work almost identically across systems.
-The legacy package @CRANpkg{RMySQL} (see @uref{https://www.mysql.com}
-and @I{Dubois}, 2000) also uses @CRANpkg{DBI}, but new code is
-better written against @CRANpkg{RMariaDB} or @CRANpkg{odbc} for
-connections to MySQL or its fork @I{MariaDB}
-(@uref{https://mariadb.org/}).
+The @CRANpkg{DBI} interface is implemented by all the back-ends listed
+above (and by the legacy @CRANpkg{RMySQL}, see @uref{https://www.mysql.com}
+and @I{Dubois}, 2000).  The description below applies with minor changes
+to all of them.  The example uses @CRANpkg{RSQLite}, which embeds the
+SQLite @abbr{DBMS} into @R{} so that no server is required.
+
 
 @findex dbConnect
 @findex dbDisconnect
-A connection is opened by @code{dbConnect} on a driver object, and
-later closed by @code{dbDisconnect}.  The driver chosen determines
-the @abbr{DBMS}: e.g.@: @code{RSQLite::SQLite()},
-@code{RMariaDB::MariaDB()}, @code{RPostgres::Postgres()},
-@code{ROracle::Oracle()}, @code{odbc::odbc()} or
-@code{duckdb::duckdb()}.
+A call to @code{dbConnect} on a driver object opens a database connection
+which can subsequently be closed by a call to the generic function
+@code{dbDisconnect}.  The driver chosen determines the @abbr{DBMS}: e.g.@:
+@code{RSQLite::SQLite()}, @code{RMariaDB::MariaDB()},
+@code{RPostgres::Postgres()}, @code{ROracle::Oracle()},
+@code{odbc::odbc()} or @code{duckdb::duckdb()}.
 
 @findex dbSendQuery
 @findex dbClearResult
 @findex dbGetQuery
-@findex dbFetch
 @acronym{SQL} queries can be sent by either @code{dbSendQuery} or
-@code{dbGetQuery}.  @code{dbGetQuery} sends the query and retrieves
-the result as a data frame.  @code{dbSendQuery} sends the query and
-returns an object of class inheriting from @code{"DBIResult"}, from
-which rows can be retrieved with @code{dbFetch} (some, or all, at a
-time).  The function @code{dbHasCompleted} indicates whether all
-the rows have been fetched, @code{dbGetRowCount} returns the number
-of rows fetched so far, and a result object should be released with
-@code{dbClearResult} when no longer needed.
+@code{dbGetQuery}.  @code{dbGetQuery} sends the query and retrieves the
+results as a data frame.  @code{dbSendQuery} sends the query and returns
+an object of class inheriting from @code{"DBIResult"} which can be used
+to retrieve the results, and subsequently used in a call to
+@code{dbClearResult} to remove the result.
+
+@findex dbFetch
+Function @code{dbFetch} is used to retrieve some or all of the rows in the
+query result.  The function @code{dbHasCompleted} indicates if
+all the rows have been fetched, and @code{dbGetRowCount} returns the
+number of rows fetched so far.
 
 @findex dbReadTable
 @findex dbWriteTable
 @findex dbExistsTable
 @findex dbRemoveTable
-These are convenient interfaces to read/write/test/delete tables in
-the database.  @code{dbReadTable} and @code{dbWriteTable} copy to and
-from an @R{} data frame.
-
-The example below uses @CRANpkg{RSQLite}, which embeds the SQLite
-@abbr{DBMS} into @R{} so that no server has to be installed.  The
-same code, with a different call to @code{dbConnect}, works for the
-other back-ends.
+These are convenient interfaces to read/write/test/delete tables in the
+database.  @code{dbReadTable} and @code{dbWriteTable} copy to and from
+an @R{} data frame.
 
 @smallexample
 > library(DBI)
@@ -1485,8 +1468,8 @@ other back-ends.
 3     8.1     294       80 31.0
 4     8.8     190       50 19.5
 ...
-## select from the loaded table.  Use parameters rather than pasting
-## values into SQL strings.
+## select from the loaded table; use parameters rather than pasting
+## values into SQL strings
 > dbGetQuery(con,
 +            "SELECT Murder FROM arrests WHERE Rape > ? ORDER BY Murder",
 +            params = list(30))
@@ -1504,7 +1487,7 @@ other back-ends.
 @end smallexample
 
 The @CRANpkg{DBI} specification is documented in the package vignette
-(@uref{https://dbi.r-dbi.org/articles/spec.html}); see
+(@uref{https://dbi.r-dbi.org/articles/spec.html}); see also
 @uref{https://dbplyr.tidyverse.org/} for a `dplyr' interface that
 generates @acronym{SQL} from ordinary @R{} expressions on top of any
 @CRANpkg{DBI} connection.
@@ -1523,11 +1506,9 @@ have tested Microsoft SQL Server, Access, MySQL, PostgreSQL, Oracle and
 IBM DB2 on Windows and MySQL, MariaDB, Oracle, PostgreSQL and SQLite on
 Linux.
 
-For new code, package @CRANpkg{odbc}
-(@uref{https://odbc.r-dbi.org/}) is a @CRANpkg{DBI}-compliant
-alternative to @CRANpkg{RODBC} that uses the same drivers but
-exposes the standard @CRANpkg{DBI} interface, and is typically
-faster.
+For new code, package @CRANpkg{odbc} (@uref{https://odbc.r-dbi.org/})
+is a @CRANpkg{DBI}-compliant alternative that uses the same drivers
+but exposes the standard @CRANpkg{DBI} interface.
 
 @abbr{ODBC} is a client-server system, and we have happily connected to a @abbr{DBMS}
 running on a Unix server from a Windows client, and @emph{vice versa}.
