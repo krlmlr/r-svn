@@ -1148,9 +1148,9 @@ and lists) ones.
 There are limitations on the types of data that @R{} handles well.
 Since all data being manipulated by @R{} are resident in memory, and
 several copies of the data can be created during execution of a
-function, @R{} is not well suited to extremely large data sets.  Data
-objects that are more than a (few) hundred megabytes in size can cause
-@R{} to run out of memory, particularly on a 32-bit operating system.
+function, @R{} is not always the best fit for very large data sets:
+once the working data approaches the available RAM, @R{} will start
+to struggle (more so on 32-bit builds, which are now rare).
 
 @R{} does not easily support concurrent access to data.  That is, if
 more than one user is accessing, and perhaps updating, the same data,
@@ -1189,11 +1189,13 @@ extract a 10% sample of the data, to cross-tabulate data to produce a
 multi-dimensional contingency table, and to extract data group by group
 from a database for separate analysis.
 
-Increasingly OSes are themselves making use of @abbr{DBMS}s for these reasons,
-so it is nowadays likely that one will be already installed on your
-(non-Windows) OS.  @uref{https://en.wikipedia.org/wiki/Akonadi, Akonadi}
-is used by KDE4 to store personal information.  Several macOS
-applications, including Mail and Address Book, use SQLite.
+Increasingly OSes and applications are themselves making use of
+@abbr{DBMS}s for these reasons, so it is nowadays likely that one is
+already installed on your machine.
+@uref{https://en.wikipedia.org/wiki/Akonadi, Akonadi} is used by KDE
+to store personal information; several macOS applications, including
+Mail and Address Book, use SQLite, as do many web browsers and
+mobile platforms.
 @c https://www.actualtech.com/sqlite_applications.php
 
 
@@ -1202,16 +1204,20 @@ applications, including Mail and Address Book, use SQLite.
 
 Traditionally there had been large (and expensive) commercial @abbr{RDBMS}s
 (@uref{https://www.ibm.com/products/informix, Informix};
-@uref{https://www.oracle.com, Oracle}; 
-@I{Sybase};
+@uref{https://www.oracle.com, Oracle};
+@I{Sybase}/SAP @acronym{ASE};
 @uref{https://www.ibm.com/db2, IBM's DB2};
 @uref{https://www.microsoft.com/sql-server/, Microsoft @acronym{SQL}
-Server} on Windows) and academic and small-system databases (such as
-MySQL@footnote{and forks, notably MariaDB.}, PostgreSQL, Microsoft
-Access, @dots{}), the former marked out by much greater emphasis on data
-security features.  The line is blurring, with MySQL and PostgreSQL
-having more and more high-end features, and free `express' versions
-being made available for the commercial @abbr{DBMS}s.
+Server}) and academic and small-system databases (such as
+MySQL@footnote{and forks, notably MariaDB.}, PostgreSQL, SQLite,
+Microsoft Access, @dots{}), the former marked out by much greater
+emphasis on data security features.  By now the line is more or less
+gone: PostgreSQL and MySQL/MariaDB rival the commercial products
+feature for feature, free `express' editions of the commercial
+@abbr{DBMS}s are widely available, and embedded engines such as
+@uref{https://www.sqlite.org/, SQLite} and
+@uref{https://duckdb.org/, DuckDB} provide serverless options that
+need no installation at all.
 
 @cindex ODBC
 @cindex Open Database Connectivity
@@ -1222,14 +1228,18 @@ these data sources.  It originated on Windows (see
 @uref{https://docs.microsoft.com/en-us/sql/odbc/microsoft-open-database-connectivity-odbc})
 but is also implemented on Linux/Unix/macOS.
 
-All of the packages described later in this chapter provide clients to
-client/server databases.  The database can reside on the same machine or
-(more often) remotely.  There is an @acronym{ISO} standard (in fact
-several: @acronym{SQL}92 is @acronym{ISO}/@acronym{IEC}@tie{}9075, also known as
-@acronym{ANSI} X3.135-1992, and @acronym{SQL}99 is coming into use) for
-an interface language called @acronym{SQL} (Structured Query Language,
-sometimes pronounced `sequel': see Bowman @emph{@I{et al.}@:} 1996 and Kline
-and Kline 2001) which these @abbr{DBMS}s support to varying degrees.
+Most of the packages described later in this chapter are clients for
+client/server databases.  The database can reside on the same machine
+or (more often) remotely.  Some packages instead embed the database
+directly into the @R{} process (notably @CRANpkg{RSQLite} and
+@CRANpkg{duckdb}), which is convenient for testing, teaching and
+analytical workloads on local files.  There is an @acronym{ISO}/
+@acronym{IEC}@tie{}9075 standard for an interface language called
+@acronym{SQL} (Structured Query Language, sometimes pronounced
+`sequel': see Bowman @emph{@I{et al.}@:} 1996 and Kline and Kline
+2001), revised regularly (the current revision is
+@acronym{SQL}:2023), which these @abbr{DBMS}s support to varying
+degrees.
 
 
 @node SQL queries
@@ -1340,28 +1350,44 @@ timezone}.  Other types widely implemented are @code{text} and
 @code{blob}, for large blocks of text and binary data, respectively.
 
 The more comprehensive of the @R{} interface packages hide the type
-conversion issues from the user.
+conversion issues from the user.  Modern @CRANpkg{DBI}-based packages
+map the common @R{} types (@code{integer}, @code{double},
+@code{character}, @code{logical}, @code{Date}, @code{POSIXct},
+@code{raw}) to the matching @acronym{SQL} types automatically, so
+this layer is rarely visible.  Many @abbr{DBMS}s now also offer
+richer types such as @code{json}, arrays and @code{uuid}; consult
+your @abbr{DBMS} documentation for the specifics.
 
 
 @node R interface packages
 @section R interface packages
 
 There are several packages available on @acronym{CRAN} to help @R{}
-communicate with @abbr{DBMS}s.  They provide different levels of abstraction.
-Some provide means to copy whole data frames to and from databases.  All
-have functions to select data within the database via @acronym{SQL}
-queries, and to retrieve the result as a whole as a
-data frame or in pieces (usually as groups of rows).  
+communicate with @abbr{DBMS}s.  They provide different levels of
+abstraction.  Some provide means to copy whole data frames to and
+from databases.  All have functions to select data within the
+database via @acronym{SQL} queries, and to retrieve the result as a
+whole as a data frame or in pieces (usually as groups of rows).
 
-All except @CRANpkg{RODBC} are tied to one @abbr{DBMS}, but there has been a
-proposal for a unified `front-end' package @CRANpkg{DBI}
-(@uref{https://developer.r-project.org/db/}) in conjunction with a
-`back-end', the most developed of which is @CRANpkg{RMySQL}.  Also on
-@acronym{CRAN} are the back-ends @CRANpkg{ROracle},
-@CRANpkg{RPostgreSQL} and @CRANpkg{RSQLite} (which works with the
-bundled @abbr{DBMS} @code{SQLite}, @uref{https://www.sqlite.org/index.html}) and
-@CRANpkg{RJDBC} (which uses Java and can connect to any @abbr{DBMS} that has a
-@abbr{JDBC} driver).
+The @CRANpkg{DBI} package (@uref{https://dbi.r-dbi.org/}) defines a
+unified `front-end' that applications and downstream packages
+program against; individual @abbr{DBMS}s are reached through
+`back-end' packages that implement that interface.  The
+@uref{https://www.r-dbi.org/, R-DBI} project maintains the most
+widely used back-ends: @CRANpkg{RSQLite} for the embedded
+@abbr{DBMS} SQLite (@uref{https://www.sqlite.org/}),
+@CRANpkg{RMariaDB} for MySQL (@uref{https://www.mysql.com}) and its
+fork MariaDB (@uref{https://mariadb.org/}), @CRANpkg{RPostgres} for
+PostgreSQL (@uref{https://www.postgresql.org/}), and @CRANpkg{odbc}
+(@uref{https://odbc.r-dbi.org/}) for any @abbr{DBMS} reachable
+through an @abbr{ODBC} driver.  The earlier back-ends
+@CRANpkg{RMySQL} and @CRANpkg{RPostgreSQL} are still on
+@acronym{CRAN}; @CRANpkg{RMariaDB} and @CRANpkg{RPostgres} are the
+recommended successors.  Oracle is supported by @CRANpkg{ROracle}.
+Any @abbr{DBMS} with a @abbr{JDBC} driver can be reached through
+@CRANpkg{RJDBC} (which uses Java).  The embedded analytical
+@abbr{DBMS} DuckDB (@uref{https://duckdb.org/}) is provided by
+@CRANpkg{duckdb}, which also implements @CRANpkg{DBI}.
 
 @c The BioConductor project has updated @pkg{RdbiPgSQL} (formerly on
 @c @acronym{CRAN} ca 2000), a first-generation interface to PostgreSQL.
@@ -1369,102 +1395,119 @@ bundled @abbr{DBMS} @code{SQLite}, @uref{https://www.sqlite.org/index.html}) and
 @pkg{PL/R} (@uref{https://github.com/postgres-plr/plr}) is a project to
 embed R into PostgreSQL.
 
-Package @CRANpkg{RMongo} provides an @R{} interface to a Java client for
-`MongoDB' (@uref{https://en.wikipedia.org/wiki/MongoDB}) databases,
-which are queried using JavaScript rather than SQL.  Package
-@CRANpkg{mongolite} is another client using @pkg{mongodb}'s C driver.
+Package @CRANpkg{mongolite} provides an @R{} interface to `MongoDB'
+(@uref{https://en.wikipedia.org/wiki/MongoDB}) databases using
+@pkg{mongodb}'s C driver; queries are written in JavaScript rather
+than @acronym{SQL}.
+
+Two helpers are worth knowing about even when they are not the main
+interface.  Package @CRANpkg{dbplyr}
+(@uref{https://dbplyr.tidyverse.org/}) is a `dplyr' back-end that
+translates ordinary @R{} data-manipulation code into @acronym{SQL}
+and sends it to a @CRANpkg{DBI} connection, so that one can work
+with remote tables almost as if they were data frames.  Package
+@CRANpkg{pool} (@uref{https://rstudio.github.io/pool/}) maintains a
+pool of @CRANpkg{DBI} connections, which is convenient for
+long-running interactive applications such as Shiny.
+
+For an up-to-date overview of @R{} packages for databases, see the
+@CRANpkg{DBI} project home page (@uref{https://www.r-dbi.org/}), the
+@uref{https://CRAN.R-project.org/view=Databases, CRAN Task View on
+Databases}, and the database section of Posit's solutions site
+(@uref{https://solutions.posit.co/connections/db/}).
 
 
 @node DBI
 @subsection Packages using DBI
-@cindex MySQL database system
+@cindex DBI
 
-Package @CRANpkg{RMySQL} on @acronym{CRAN} provides an interface to the
-MySQL database system (see @uref{https://www.mysql.com} and @I{Dubois},
-2000) or its fork @I{MariaDB} (see @uref{https://mariadb.org/}).  The
-description here applies to versions @code{0.5-0} and later: earlier
-versions had a substantially different interface.  The current version
-requires the @CRANpkg{DBI} package, and this description will apply with
-minor changes to all the other back-ends to @CRANpkg{DBI}.
+The current generation of database back-ends ---
+@CRANpkg{RSQLite}, @CRANpkg{RMariaDB}, @CRANpkg{RPostgres},
+@CRANpkg{ROracle}, @CRANpkg{odbc}, @CRANpkg{duckdb},
+@CRANpkg{RJDBC} --- all build on @CRANpkg{DBI}, which defines a
+small set of generics that work almost identically across systems.
+The legacy package @CRANpkg{RMySQL} (see @uref{https://www.mysql.com}
+and @I{Dubois}, 2000) also uses @CRANpkg{DBI}, but new code is
+better written against @CRANpkg{RMariaDB} or @CRANpkg{odbc} for
+connections to MySQL or its fork @I{MariaDB}
+(@uref{https://mariadb.org/}).
 
-MySQL exists on Unix/Linux/macOS and Windows: there is a `Community
-Edition' released under GPL but commercial licenses are also available.
-MySQL was originally a `light and lean' database.  (It preserves the
-case of names where the operating file system is case-sensitive, so not
-on Windows.)
-
-
-@findex dbDriver
 @findex dbConnect
 @findex dbDisconnect
-The call @code{dbDriver("MySQL")} returns a database connection manager
-object, and then a call to @code{dbConnect} opens a database connection
-which can subsequently be closed by a call to the generic function
-@code{dbDisconnect}.  Use @code{dbDriver("Oracle")},
-@code{dbDriver("PostgreSQL")} or @code{dbDriver("SQLite")} with those
-@abbr{DBMSs} and packages @CRANpkg{ROracle}, @CRANpkg{RPostgreSQL} or @CRANpkg{RSQLite}
-respectively.
+A connection is opened by @code{dbConnect} on a driver object, and
+later closed by @code{dbDisconnect}.  The driver chosen determines
+the @abbr{DBMS}: e.g.@: @code{RSQLite::SQLite()},
+@code{RMariaDB::MariaDB()}, @code{RPostgres::Postgres()},
+@code{ROracle::Oracle()}, @code{odbc::odbc()} or
+@code{duckdb::duckdb()}.
 
 @findex dbSendQuery
 @findex dbClearResult
 @findex dbGetQuery
+@findex dbFetch
 @acronym{SQL} queries can be sent by either @code{dbSendQuery} or
-@code{dbGetQuery}.  @code{dbGetquery} sends the query and retrieves the
-results as a data frame.  @code{dbSendQuery} sends the query and returns
-an object of class inheriting from @code{"DBIResult"} which can be used
-to retrieve the results, and subsequently used in a call to
-@code{dbClearResult} to remove the result.
-
-@findex fetch
-Function @code{fetch} is used to retrieve some or all of the rows in the
-query result, as a list.  The function @code{dbHasCompleted} indicates if
-all the rows have been fetched, and @code{dbGetRowCount} returns the
-number of rows in the result.
+@code{dbGetQuery}.  @code{dbGetQuery} sends the query and retrieves
+the result as a data frame.  @code{dbSendQuery} sends the query and
+returns an object of class inheriting from @code{"DBIResult"}, from
+which rows can be retrieved with @code{dbFetch} (some, or all, at a
+time).  The function @code{dbHasCompleted} indicates whether all
+the rows have been fetched, @code{dbGetRowCount} returns the number
+of rows fetched so far, and a result object should be released with
+@code{dbClearResult} when no longer needed.
 
 @findex dbReadTable
 @findex dbWriteTable
 @findex dbExistsTable
 @findex dbRemoveTable
-These are convenient interfaces to read/write/test/delete tables in the
-database.  @code{dbReadTable} and @code{dbWriteTable} copy to and from
-an @R{} data frame, mapping the row names of the data frame to the field
-@code{row_names} in the @code{MySQL} table.
+These are convenient interfaces to read/write/test/delete tables in
+the database.  @code{dbReadTable} and @code{dbWriteTable} copy to and
+from an @R{} data frame.
+
+The example below uses @CRANpkg{RSQLite}, which embeds the SQLite
+@abbr{DBMS} into @R{} so that no server has to be installed.  The
+same code, with a different call to @code{dbConnect}, works for the
+other back-ends.
 
 @smallexample
-> library(RMySQL) # will load DBI as well
-## open a connection to a MySQL database
-> con <- dbConnect(dbDriver("MySQL"), dbname = "test")
-## list the tables in the database
-> dbListTables(con)
+> library(DBI)
+## open an in-memory SQLite database
+> con <- dbConnect(RSQLite::SQLite(), ":memory:")
 ## load a data frame into the database, deleting any existing copy
-> data(USArrests)
 > dbWriteTable(con, "arrests", USArrests, overwrite = TRUE)
-TRUE
+## list the tables in the database
 > dbListTables(con)
 [1] "arrests"
 ## get the whole table
 > dbReadTable(con, "arrests")
-               Murder Assault UrbanPop Rape
-Alabama          13.2     236       58 21.2
-Alaska           10.0     263       48 44.5
-Arizona           8.1     294       80 31.0
-Arkansas          8.8     190       50 19.5
+   Murder Assault UrbanPop Rape
+1    13.2     236       58 21.2
+2    10.0     263       48 44.5
+3     8.1     294       80 31.0
+4     8.8     190       50 19.5
 ...
-## Select from the loaded table
-> dbGetQuery(con, paste("select row_names, Murder from arrests",
-                        "where Rape > 30 order by Murder"))
-   row_names Murder
-1   Colorado    7.9
-2    Arizona    8.1
-3 California    9.0
-4     Alaska   10.0
-5 New Mexico   11.4
-6   Michigan   12.1
-7     Nevada   12.2
-8    Florida   15.4
+## select from the loaded table.  Use parameters rather than pasting
+## values into SQL strings.
+> dbGetQuery(con,
++            "SELECT Murder FROM arrests WHERE Rape > ? ORDER BY Murder",
++            params = list(30))
+  Murder
+1    7.9
+2    8.1
+3    9.0
+4   10.0
+5   11.4
+6   12.1
+7   12.2
+8   15.4
 > dbRemoveTable(con, "arrests")
 > dbDisconnect(con)
 @end smallexample
+
+The @CRANpkg{DBI} specification is documented in the package vignette
+(@uref{https://dbi.r-dbi.org/articles/spec.html}); see
+@uref{https://dbplyr.tidyverse.org/} for a `dplyr' interface that
+generates @acronym{SQL} from ordinary @R{} expressions on top of any
+@CRANpkg{DBI} connection.
 
 @node RODBC
 @subsection Package @pkg{RODBC}
@@ -1479,6 +1522,12 @@ and almost all database systems provide support for @abbr{ODBC}.  We
 have tested Microsoft SQL Server, Access, MySQL, PostgreSQL, Oracle and
 IBM DB2 on Windows and MySQL, MariaDB, Oracle, PostgreSQL and SQLite on
 Linux.
+
+For new code, package @CRANpkg{odbc}
+(@uref{https://odbc.r-dbi.org/}) is a @CRANpkg{DBI}-compliant
+alternative to @CRANpkg{RODBC} that uses the same drivers but
+exposes the standard @CRANpkg{DBI} interface, and is typically
+faster.
 
 @abbr{ODBC} is a client-server system, and we have happily connected to a @abbr{DBMS}
 running on a Unix server from a Windows client, and @emph{vice versa}.
@@ -1620,125 +1669,6 @@ spreadsheet, we can read from a spreadsheet by
 Notice that the specification of the table is different from the name
 returned by @code{sqlTables}: @code{sqlFetch} is able to map the
 differences.
-
-
-
-@c @node RPgSQL
-@c @subsection Package RPgSQL
-@c @cindex PostgreSQL database system
-
-@c Package @pkg{RPgSQL} at @uref{http://rpgsql.sourceforge.net/} and in the
-@c @code{Devel} area on @acronym{CRAN} provides an interface to
-@c @uref{http://www.postgresql.org, PostgreSQL}.  Development appears to
-@c have ceased.
-
-@c PostgreSQL is described by its developers as `the most advanced open
-@c source database server' (Momjian, 2000).  It would appear to be buildable
-@c for most Unix-alike OSes and Windows (under Cygwin or U/Win).
-@c PostgreSQL has most of the features of the commercial RDBMSs.
-
-@c @findex db.connect
-@c @findex db.read.table
-@c @findex db.write.table
-@c To make use of @pkg{RPgSQL}, first open a connection to a database using
-@c @code{db.connect}.  (Currently only one connection can be open at a
-@c time.)  Once a connection is open an @R{} data frame can be copied to a
-@c PostgreSQL table by @code{db.write.table}, whereas @code{db.read.table}
-@c copies a PostgreSQL table to an @R{} data frame.
-
-@c @findex bind.db.proxy
-@c @cindex proxy data frame
-@c @pkg{RPgSQL} has the interesting concept of a @emph{proxy data frame}.
-@c A data frame proxy is an @R{} object that inherits from the
-@c @code{"data.frame"} class, but contains no data.  All accesses to the
-@c proxy data frame generate the appropriate @acronym{SQL} query and
-@c retrieve the resulting data from the database.  A proxy data frame is
-@c set up by a call to @code{bind.db.proxy}.  To remove the proxy, just
-@c remove the object which @code{bind.db.proxy} created.
-
-@c @findex db.execute
-@c @findex db.result.columns
-@c @findex db.result.rows
-@c @findex db.read.column
-@c @findex db.fetch.result
-@c @findex db.clear.result
-@c @findex db.result.get.value
-@c A finer level of control is available via sending @acronym{SQL} queries
-@c to the PostgreSQL server via @code{db.execute}.  This leaves a result in
-@c PostgreSQL's result cache, unless flushed by @code{clear = TRUE} (the
-@c default).  Once a result is in the cache, @code{db.fetch.result} can be
-@c used to fetch the whole result as a data frame.  Functions such as
-@c @code{db.result.columns} and @code{db.result.rows} will report the
-@c number of columns and rows in the cached table, and
-@c @code{db.read.column} will fetch a single column (as a vector).  An
-@c individual cell in the result can be read by @code{db.result.get.value}.
-@c @code{db.clear.result} will clear the result cache.
-
-@c @findex sql.insert
-@c @findex sql.select
-@c One disadvantage is that PostgreSQL maps all table and column names to
-@c lower case, so for maximal flexibility, only use lower case in @R{}
-@c names.  Functions @code{sql.insert} and @code{sql.select} provide
-@c convenience wrappers for the INSERT and SELECT queries.
-
-@c We can explore these functions in a simple example.  The database
-@c @file{testdb} had already been set up, and as PostgreSQL was running on
-@c a standalone machine no further authentication was required to connect.
-
-@c @smallexample
-@c > library(RPgSQL)
-@c > db.connect(dbname="testdb")   # add authentication as needed
-@c Connected to database "testdb" on ""
-@c > data(USArrests)
-@c > usarrests <- USArrests
-@c > names(usarrests) <- tolower(names(USArrests))
-@c > db.write.table(USArrests, write.row.names = TRUE)
-@c > db.write.table(usarrests, write.row.names = TRUE)
-@c > rm(USArrests, usarrests)
-@c ## db.ls lists tables in the database.
-@c > db.ls()
-@c [1] "USArrests"  "usarrests"
-@c > db.read.table("USArrests")
-@c                Murder Assault UrbanPop Rape
-@c Alabama          13.2     236       58 21.2
-@c Alaska           10.0     263       48 44.5
-@c    ...
-@c ## set up a proxy data frame.  Remember USArrests has been removed
-@c > bind.db.proxy("USArrests")
-@c ## USArrests is now a proxy, so all accesses are to the database
-@c > USArrests[, "Rape"]
-@c    Rape
-@c 1  21.2
-@c 2  44.5
-@c    ...
-@c > rm(USArrests) # remove proxy
-@c > db.execute("SELECT rpgsql_row_names, murder FROM usarrests",
-@c              "WHERE rape > 30 ORDER BY murder", clear=FALSE)
-@c > db.fetch.result()
-@c            murder
-@c Colorado      7.9
-@c Arizona       8.1
-@c California    9.0
-@c Alaska       10.0
-@c New Mexico   11.4
-@c Michigan     12.1
-@c Nevada       12.2
-@c Florida      15.4
-@c > db.rm("USArrests", "usarrests") # use ask=FALSE to skip confirmation
-@c Destroy table USArrests? y
-@c Destroy table usarrests? y
-@c > db.ls()
-@c character(0)
-@c > db.disconnect()
-@c @end smallexample
-
-@c @noindent
-@c Notice how the row names are mapped if @code{write.row.names = TRUE} to
-@c a field @code{rpgsql_row_names} in the database table and transparently
-@c restored provided we preserve that field in the query.
-
-@c @pkg{RPgSQL} provides means to extend its mapping between @R{} classes
-@c within a data frame and PostgreSQL types.
 
 
 
