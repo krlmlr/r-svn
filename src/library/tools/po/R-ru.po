@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 4.4.0\n"
 "Report-Msgid-Bugs-To: bugs.r-project.org\n"
-"POT-Creation-Date: 2024-10-25 14:49\n"
+"POT-Creation-Date: 2026-03-07 12:17\n"
 "PO-Revision-Date: 2024-03-25 14:56+0300\n"
 "Last-Translator: Ivan Krylov <ikrylov@disroot.org>\n"
 "Language-Team: Russian\n"
@@ -269,6 +269,14 @@ msgstr "В поле Authors@R есть люди с неправильными идентификаторами ORCID:"
 msgid "Authors@R field gives persons with duplicated ORCID identifiers:"
 msgstr "В поле Authors@R есть люди с неправильными идентификаторами ORCID:"
 
+#, fuzzy
+msgid "Authors@R field gives persons with invalid ROR identifiers:"
+msgstr "В поле Authors@R есть люди с неправильными идентификаторами ORCID:"
+
+#, fuzzy
+msgid "Authors@R field gives persons with duplicated ROR identifiers:"
+msgstr "В поле Authors@R есть люди с неправильными идентификаторами ORCID:"
+
 msgid "Encoding '%s' is not portable"
 msgstr "Кодировка '%s' не переносима"
 
@@ -305,9 +313,6 @@ msgstr "Метаданные для шаблона лицензии не являются корректным DCF."
 msgid "License stub records with missing/empty fields:"
 msgstr "Поля шаблона лицензии с пустыми или пропущенными полями:"
 
-msgid "Uses ACM license: only appropriate for pre-2013 ACM TOMS code"
-msgstr "Использует лицензию ACM: применимо только к коду из ACM TOMS до 2013 года"
-
 msgid "Non-portable flags in variable '%s':"
 msgstr "Непереносимые флаги в переменной '%s':"
 
@@ -320,10 +325,12 @@ msgstr "Переменные переписывают пользовательские установки:"
 msgid "invalid 'OS.type' \"%s\".  Should not happen"
 msgstr "неправильный 'OS.type' \"%s\".  Такого быть не должно"
 
-msgid "Missing link or links in Rd file '%s':"
+#, fuzzy
+msgid "Missing link(s) in Rd file '%s':"
 msgstr "Пропущенная ссылка или ссылки с в Rd файле '%s':"
 
-msgid "Non-file package-anchored link(s) in Rd file '%s':"
+#, fuzzy
+msgid "Non-topic package-anchored link(s) in Rd file '%s':"
 msgstr "В Rd файле '%s' есть ссылки на \\alias но не файл документации конкретного пакета:"
 
 msgid "See section 'Cross-references' in the 'Writing R Extensions' manual."
@@ -482,8 +489,9 @@ msgstr "Аргументы функции без описания в Rd файле '%s':"
 msgid "Auto-generated content requiring editing in Rd file '%s':"
 msgstr "Автоматические сгенерированное содержимое требует редактирования в Rd файле '%s':"
 
-msgid "Rd files without \\description:"
-msgstr "Rd-файлы без \\description:"
+#, fuzzy
+msgid "Rd files without %s:"
+msgstr "Rd-файлы без \\alias:"
 
 msgid "no Rd sections specified"
 msgstr "не указаны разделы Rd"
@@ -836,11 +844,19 @@ msgstr "нет пакетов для проверки"
 msgid "'reverse$repos' should be a subset of getOption(\"repos\")"
 msgstr "'reverse$repos' должно быть подмножеством getOption(\"repos\")"
 
-msgid "downloading reverse dependencies ..."
+#, fuzzy
+msgid "downloading reverse dependencies %s"
 msgstr "скачиваю обратные зависимости ..."
 
-msgid "downloading %s ..."
-msgstr "скачиваю %s ..."
+#, fuzzy
+msgid "download of reverse dependency %s failed"
+msgstr "скачиваю обратные зависимости ..."
+
+#, fuzzy
+msgid ""
+"download of %d reverse dependencies failed:\n"
+"  %s"
+msgstr "скачиваю обратные зависимости ..."
 
 msgid "checking %s ..."
 msgstr "проверяю %s..."
@@ -954,12 +970,6 @@ msgstr ".install_packages() статус выхода"
 msgid "restoration failed"
 msgstr "восстановление не удалось"
 
-msgid "invalid value"
-msgstr "неправильное значение"
-
-msgid "for R_CROSS_BUILD"
-msgstr "для R_CROSS_BUILD"
-
 msgid "error reading file '%s'"
 msgstr "ошибка чтения файла '%s'"
 
@@ -1063,6 +1073,9 @@ msgstr "ОШИБКА: нет прав для установочной папки"
 msgid "building a fake installation is disallowed"
 msgstr "сборка ложной установки не разрешается"
 
+msgid "specified C++"
+msgstr ""
+
 msgid "using C compiler:"
 msgstr ""
 
@@ -1083,6 +1096,10 @@ msgstr ""
 
 msgid "Reverted installation-time patch"
 msgstr ""
+
+#, fuzzy
+msgid "Input must be character"
+msgstr "'text' должен быть текстовым вектором"
 
 msgid ""
 "See\n"
@@ -1192,6 +1209,13 @@ msgstr ""
 "  %s\n"
 "не содержит \\item."
 
+msgid "There is no binary type for this build of R."
+msgstr ""
+
+#, fuzzy
+msgid "invalid 'type'"
+msgstr "неправильный пакет"
+
 msgid "Processing packages:"
 msgstr "Обрабатываю пакеты:"
 
@@ -1282,9 +1306,6 @@ msgstr "не удался запуск 'xgettext'"
 
 msgid "Running vignettes for package %s"
 msgstr "Запускаю миниатюры для пакета %s"
-
-msgid "Comparing %s to %s ..."
-msgstr "Сравниваю %s и %s ..."
 
 msgid "no parsed files found"
 msgstr "не анализированных файлов"
@@ -1426,6 +1447,11 @@ msgstr "Неизвестная кодировка с не-ASCII данными: конвертирую в ASCII"
 msgid "cannot source package code:"
 msgstr "не могу выполнить код пакета:"
 
+msgid ""
+"error in inferior call:\n"
+"  %s"
+msgstr ""
+
 #, fuzzy
 msgid "inferiorCallError"
 msgstr "внутренняя ошибка"
@@ -1505,7 +1531,8 @@ msgstr[0] "Найден вызов .Internal в следующей функции:"
 msgstr[1] "Найдены вызовы .Internal в следующих функциях:"
 msgstr[2] "Найдены вызовы .Internal в следующих функциях:"
 
-msgid "Found a.Internal call in methods for the following S4 generic:"
+#, fuzzy
+msgid "Found a .Internal call in methods for the following S4 generic:"
 msgid_plural "Found .Internal calls in methods for the following S4 generics:"
 msgstr[0] "Найден вызов .Internal в методах следующей S4-общей функции:"
 msgstr[1] "Найдены вызовы .Internal в методах следующих S4-общих функций:"
@@ -1629,6 +1656,24 @@ msgid_plural "Corresponding BibTeX entries:"
 msgstr[0] "Соответствующая запись BibTeX:"
 msgstr[1] "Соответствующие записи BibTeX:"
 msgstr[2] "Соответствующие записи BibTeX:"
+
+#~ msgid "Uses ACM license: only appropriate for pre-2013 ACM TOMS code"
+#~ msgstr "Использует лицензию ACM: применимо только к коду из ACM TOMS до 2013 года"
+
+#~ msgid "Rd files without \\description:"
+#~ msgstr "Rd-файлы без \\description:"
+
+#~ msgid "downloading %s ..."
+#~ msgstr "скачиваю %s ..."
+
+#~ msgid "invalid value"
+#~ msgstr "неправильное значение"
+
+#~ msgid "for R_CROSS_BUILD"
+#~ msgstr "для R_CROSS_BUILD"
+
+#~ msgid "Comparing %s to %s ..."
+#~ msgstr "Сравниваю %s и %s ..."
 
 #~ msgid "one of 'package' and 'dir' must be specified."
 #~ msgstr "в точности один аргумент из 'package' и 'dir' должен быть указан"

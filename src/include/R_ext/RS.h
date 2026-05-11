@@ -1,6 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 1999-2024 The R Core Team.
+ *  Copyright (C) 1999-2026 The R Core Team.
  *
  *  This header file is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -38,19 +38,13 @@
 
 #include <Rconfig.h>		/* for HAVE_F77_UNDERSCORE */
 
-/* Temprorary fix for a package that assumes this is set. */
-
-#ifndef STRICT_R_HEADERS
-# define STRICT_R_HEADERS
-#endif
-
 #ifdef  __cplusplus
 extern "C" {
 #endif
 
 /* S Like Memory Management */
 
-/* not of themselves API */
+/* experimental API */
 extern void *R_chk_calloc(R_SIZE_T, R_SIZE_T);
 extern void *R_chk_realloc(void *, R_SIZE_T);
 extern void R_chk_free(void *);
@@ -76,7 +70,7 @@ extern void *R_chk_memset(void *, int, R_SIZE_T);
    blocks, and some compilers may need to specify Fortran linkage.
 
    HP-UX did not add a trailing underscore.  (It still existed in
-   2024, but R poiorts had not been seen for many years.)
+   2024, but R ports had not been seen for many years.)
 
    Note that this is an F77 interface, intended only for valid F77
    names of <= 6 ASCII characters (and no underscores) and there is an

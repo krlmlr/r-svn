@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: R 4.5.0\n"
+"Project-Id-Version: R 4.6.0\n"
 "Report-Msgid-Bugs-To: bugs.r-project.org\n"
-"POT-Creation-Date: 2024-10-25 14:49\n"
+"POT-Creation-Date: 2026-03-07 12:17\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -252,6 +252,12 @@ msgstr ""
 msgid "Authors@R field gives persons with duplicated ORCID identifiers:"
 msgstr ""
 
+msgid "Authors@R field gives persons with invalid ROR identifiers:"
+msgstr ""
+
+msgid "Authors@R field gives persons with duplicated ROR identifiers:"
+msgstr ""
+
 msgid "Encoding '%s' is not portable"
 msgstr ""
 
@@ -288,9 +294,6 @@ msgstr ""
 msgid "License stub records with missing/empty fields:"
 msgstr ""
 
-msgid "Uses ACM license: only appropriate for pre-2013 ACM TOMS code"
-msgstr ""
-
 msgid "Non-portable flags in variable '%s':"
 msgstr ""
 
@@ -303,10 +306,10 @@ msgstr ""
 msgid "invalid 'OS.type' \"%s\".  Should not happen"
 msgstr ""
 
-msgid "Missing link or links in Rd file '%s':"
+msgid "Missing link(s) in Rd file '%s':"
 msgstr ""
 
-msgid "Non-file package-anchored link(s) in Rd file '%s':"
+msgid "Non-topic package-anchored link(s) in Rd file '%s':"
 msgstr ""
 
 msgid "See section 'Cross-references' in the 'Writing R Extensions' manual."
@@ -465,7 +468,7 @@ msgstr ""
 msgid "Auto-generated content requiring editing in Rd file '%s':"
 msgstr ""
 
-msgid "Rd files without \\description:"
+msgid "Rd files without %s:"
 msgstr ""
 
 msgid "no Rd sections specified"
@@ -792,10 +795,13 @@ msgstr ""
 msgid "'reverse$repos' should be a subset of getOption(\"repos\")"
 msgstr ""
 
-msgid "downloading reverse dependencies ..."
+msgid "downloading reverse dependencies %s"
 msgstr ""
 
-msgid "downloading %s ..."
+msgid "download of reverse dependency %s failed"
+msgstr ""
+
+msgid "download of %d reverse dependencies failed:\n  %s"
 msgstr ""
 
 msgid "checking %s ..."
@@ -909,12 +915,6 @@ msgstr ""
 msgid "restoration failed"
 msgstr ""
 
-msgid "invalid value"
-msgstr ""
-
-msgid "for R_CROSS_BUILD"
-msgstr ""
-
 msgid "error reading file '%s'"
 msgstr ""
 
@@ -1017,6 +1017,9 @@ msgstr ""
 msgid "building a fake installation is disallowed"
 msgstr ""
 
+msgid "specified C++"
+msgstr ""
+
 msgid "using C compiler:"
 msgstr ""
 
@@ -1036,6 +1039,9 @@ msgid "WARNING: failed to revert patch"
 msgstr ""
 
 msgid "Reverted installation-time patch"
+msgstr ""
+
+msgid "Input must be character"
 msgstr ""
 
 msgid "See\n  %s\nfor details."
@@ -1099,6 +1105,12 @@ msgid "Malformed NEWS.Rd file:\nChunk starting\n  %s\ncontains more than one \\i
 msgstr ""
 
 msgid "Malformed NEWS.Rd file:\nChunk starting\n  %s\ncontains no \\item."
+msgstr ""
+
+msgid "There is no binary type for this build of R."
+msgstr ""
+
+msgid "invalid 'type'"
 msgstr ""
 
 msgid "Processing packages:"
@@ -1183,9 +1195,6 @@ msgid "Error: running the tests in %s failed"
 msgstr ""
 
 msgid "Running vignettes for package %s"
-msgstr ""
-
-msgid "Comparing %s to %s ..."
 msgstr ""
 
 msgid "no parsed files found"
@@ -1323,6 +1332,9 @@ msgstr ""
 msgid "cannot source package code:"
 msgstr ""
 
+msgid "error in inferior call:\n  %s"
+msgstr ""
+
 msgid "inferiorCallError"
 msgstr ""
 
@@ -1390,7 +1402,7 @@ msgid_plural "Found .Internal calls in the following functions:"
 msgstr[0]    ""
 msgstr[1]    ""
 
-msgid        "Found a.Internal call in methods for the following S4 generic:"
+msgid        "Found a .Internal call in methods for the following S4 generic:"
 msgid_plural "Found .Internal calls in methods for the following S4 generics:"
 msgstr[0]    ""
 msgstr[1]    ""

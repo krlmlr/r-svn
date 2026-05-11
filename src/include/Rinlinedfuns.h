@@ -1,6 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 1999-2024  The R Core Team.
+ *  Copyright (C) 1999-2025  The R Core Team.
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -81,7 +81,7 @@
 #include <string.h> /* for strlen, strcmp */
 
 /* define inline-able functions */
-#if defined(TESTING_WRITE_BARRIER) || defined(COMPILING_R)
+#if defined(TESTING_WRITE_BARRIER) || defined(COMPILING_R) || defined(COMPILING_MEMORY_C)
 # define STRICT_TYPECHECK
 # define CATCH_ZERO_LENGTH_ACCESS
 #endif
@@ -216,7 +216,7 @@ INLINE_FUN R_xlen_t XLENGTH_EX(SEXP x)
     return ALTREP(x) ? ALTREP_LENGTH(x) : STDVEC_LENGTH(x);
 }
 
-INLINE_FUN R_xlen_t XTRUELENGTH(SEXP x)
+HIDDEN INLINE_FUN R_xlen_t XTRUELENGTH(SEXP x)
 {
     return ALTREP(x) ? ALTREP_TRUELENGTH(x) : STDVEC_TRUELENGTH(x);
 }
@@ -334,11 +334,13 @@ INLINE_FUN R_xlen_t XTRUELENGTH(SEXP x)
     CHECK_STDVEC_LGL(x);
     return (int *) STDVEC_DATAPTR(x);
 }
-HIDDEN INLINE_FUN Rboolean SCALAR_LVAL(SEXP x) {
+/* This should not be Rboolean as could be NA_LOGICAL */
+HIDDEN INLINE_FUN int SCALAR_LVAL(SEXP x) {
     CHECK_SCALAR_LGL(x);
     return LOGICAL(x)[0];
 }
-HIDDEN INLINE_FUN void SET_SCALAR_LVAL(SEXP x, Rboolean v) {
+/* ditto */
+HIDDEN INLINE_FUN void SET_SCALAR_LVAL(SEXP x, int v) {
     CHECK_SCALAR_LGL(x);
     LOGICAL(x)[0] = v;
 }
@@ -798,13 +800,19 @@ INLINE_FUN Rboolean inherits(SEXP s, const char *name)
     return FALSE;
 }
 
+INLINE_FUN Rboolean isScalarString(SEXP x)
+{
+    return TYPEOF(x) == STRSXP && XLENGTH(x) == 1;
+}
+
+//HIDDEN
 INLINE_FUN Rboolean isValidString(SEXP x)
 {
     return TYPEOF(x) == STRSXP && LENGTH(x) > 0 && TYPEOF(STRING_ELT(x, 0)) != NILSXP;
 }
 
 /* non-empty ("") valid string :*/
-INLINE_FUN Rboolean isValidStringF(SEXP x)
+HIDDEN INLINE_FUN Rboolean isValidStringF(SEXP x)
 {
     return isValidString(x) && CHAR(STRING_ELT(x, 0))[0];
 }
@@ -911,9 +919,8 @@ INLINE_FUN Rboolean isDataFrame(SEXP s)
     }
     return FALSE;
 }
-/* keep available under old name for now */
-INLINE_FUN Rboolean isFrame(SEXP s) { return isDataFrame(s); }
-
+/* keep available under old name for now for old RStudio in particular */
+INLINE_FUN Rboolean Rf_isFrame(SEXP s) { return isDataFrame(s); }
 
 /* DIFFERENT than R's  is.language(.) in ../main/coerce.c [do_is(), case 301:]
  *                                    which is   <=>  SYMSXP || LANGSXP || EXPRSXP */

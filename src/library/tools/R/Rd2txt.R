@@ -1,7 +1,7 @@
 #  File src/library/tools/R/Rd2txt.R
 #  Part of the R package, https://www.R-project.org
 #
-#  Copyright (C) 1995-2024 The R Core Team
+#  Copyright (C) 1995-2026 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -37,7 +37,8 @@ Rd2txt_options <- local({
     	         sectionExtra = 2L,
     	         itemBullet = "* ",
     	         enumFormat = function(n) sprintf("%d. ", n),
-    	         showURLs = FALSE,
+                 descStyle = "linebreak",
+                 showURLs = FALSE,
                  code_quote = TRUE,
                  underline_titles = TRUE)
     function(...) {
@@ -341,9 +342,10 @@ Rd2txt <-
     }
 
     ## for efficiency
+    li <- l10n_info()
     WriteLines <-
         if(outputEncoding == "UTF-8" ||
-           (outputEncoding == "" && l10n_info()[["UTF-8"]])) {
+           (outputEncoding == "" && li[["UTF-8"]])) {
         function(x, con, outputEncoding, ...)
             writeLines(x, con, useBytes = TRUE, ...)
     } else {
@@ -458,9 +460,6 @@ Rd2txt <-
     	linestart <<- TRUE
     }
 
-    encoding <- "unknown"
-
-    li <- l10n_info()
     ## See the comment in ?Rd2txt as to why we do not attempt fancy quotes
     ## in Windows CJK locales -- and in any case they would need more work
     ## This covers the common single-byte locales and Thai (874)
@@ -496,6 +495,7 @@ Rd2txt <-
         } else header
     }
 
+    ## FIXME: replace by Unicode symbols ("\u2014", "\u2013") when possible
     unescape <- function(x) {
         x <- psub("(---|--)", "-", x)
         x
@@ -516,6 +516,7 @@ Rd2txt <-
         strip
     }
     ## Strip pending blank lines, then add n new ones.
+    ## (Currently not used with n > 1, which only works if not 'wrapping'.)
     blankLine <- function(n = 1L) {
     	while (stripBlankLine()) NULL
 	flushBuffer()
@@ -530,13 +531,29 @@ Rd2txt <-
     txt_eqn <- function(x) {
         x <- psub("\\\\(Alpha|Beta|Gamma|Delta|Epsilon|Zeta|Eta|Theta|Iota|Kappa|Lambda|Mu|Nu|Xi|Omicron|Pi|Rho|Sigma|Tau|Upsilon|Phi|Chi|Psi|Omega|alpha|beta|gamma|delta|epsilon|zeta|eta|theta|iota|kappa|lambda|mu|nu|xi|omicron|pi|rho|sigma|tau|upsilon|phi|chi|psi|omega|sum|prod|sqrt)", "\\1", x)
         x <- psub("\\\\(dots|ldots)", "...", x)
-        x <- fsub("\\le", "<=", x)
-        x <- fsub("\\ge", ">=", x)
+        x <- psub("\\\\leq?", "<=", x)
+        x <- psub("\\\\geq?", ">=", x)
+        x <- psub("\\\\neq?", "!=", x)
         x <- fsub("\\infty", "Inf", x)
         ## FIXME: are these needed?
         x <- psub("\\\\(bold|strong|emph|var)\\{([^}]*)\\}", "\\2", x)
         x <- psub("\\\\(code|samp)\\{([^}]*)\\}", "'\\2'", x)
         x
+    }
+
+    wrappers <- list(
+        "\\var"    = c("<", ">"),
+        "\\bold"   = c("*", "*"),
+        "\\strong" = c("*", "*"),
+        "\\emph"   = c("_", "_")
+    )
+    writeWrapped <- function(block, tag) {
+        if (isBlankRd(block))
+            return() # skip \emph{} etc, consistent with HTML
+    	LR <- wrappers[[tag]]
+    	put(LR[1L])
+    	writeContent(block, tag)
+    	put(LR[2L])
     }
 
     writeDR <- function(block, tag) {
@@ -553,18 +570,10 @@ Rd2txt <-
 
     writeQ <- function(block, tag, quote=tag)
     {
-        if (use_fancy_quotes) {
-            if (quote == "\\sQuote") {
-                put(LSQM); writeContent(block, tag); put(RSQM)
-            } else {
-                put(LDQM); writeContent(block, tag); put(RDQM)
-            }
+        if (quote == "\\sQuote") {
+            put(LSQM); writeContent(block, tag); put(RSQM)
         } else {
-            if (quote == "\\sQuote") {
-                put("'"); writeContent(block, tag); put("'")
-            } else {
-                put("\""); writeContent(block,tag); put("\"")
-            }
+            put(LDQM); writeContent(block, tag); put(RDQM)
         }
     }
 
@@ -631,25 +640,13 @@ Rd2txt <-
                "\\Sexpr"= put(as.character.Rd(block, deparse=TRUE)),
                "\\abbr" =,
                "\\acronym" =,
-               "\\cite"=,
                "\\dfn"= ,
                "\\special" = writeContent(block, tag),
-               "\\var" = {
-                   put("<")
-                   writeContent(block, tag)
-                   put(">")
-               },
+               "\\var"=,
                "\\bold"=,
-               "\\strong"= {
-                   put("*")
-                   writeContent(block, tag)
-                   put("*")
-               },
-               "\\emph"= {
-                   put("_")
-                   writeContent(block, tag)
-                   put("_")
-               },
+               "\\strong"=,
+               "\\emph" = writeWrapped(block, tag),
+               "\\cite" = writeQ(block, tag, quote = "\\sQuote"),
                "\\sQuote" =,
                "\\dQuote"= writeQ(block, tag) ,
                "\\preformatted"= {
@@ -666,6 +663,7 @@ Rd2txt <-
                    }
                },
                "\\linkS4class" =,
+               "\\linkS4methods" =,
                "\\link" = writeContent(block, tag),
                "\\cr" = {
                    if (!length(buffer)) { # \cr\cr
@@ -694,6 +692,7 @@ Rd2txt <-
                    ## FIXME: treat 2 of 2 differently?
                    inEqn0 <- inEqn
                    inEqn <<- TRUE
+                   dropBlank <<- TRUE
                    writeContent(block, tag)
                    inEqn <<- inEqn0
                },
@@ -891,9 +890,12 @@ Rd2txt <-
                                   indent <<- max(opts$minIndent,
                                                  indent + opts$extraIndent)
                                   keepFirstIndent <<- TRUE
-                                  putw(strrep(" ", indent0),
-                                       DLlab,
-                                       " ")
+                                  linebreak <- identical(opts$descStyle, "linebreak")
+                                  suffix <- if (identical(opts$descStyle, "colon")
+                                                && !endsWith(DLlab[length(DLlab)], ":")) ": "
+                                            else if (!linebreak) " "
+                                  putw(strrep(" ", indent0), DLlab, suffix)
+                                  if (linebreak) blankLine(0L)
                                   writeContent(block[[2L]], tag)
 			  	  blankLine(0L)
                                   indent <<- indent0
@@ -937,7 +939,7 @@ Rd2txt <-
                        ## The next item must be TEXT, and start with a space.
                        itemskip <- FALSE
                        if (tag == "TEXT") {
-                           txt <- psub("^ ", "", as.character(tabExpand(block)))
+                           txt <- psub("^ ", "", as.character(unescape(tabExpand(block))))
                            put(txt)
                            if (!haveBlanks &&
                                blocktag %in% c("\\describe", "\\value", "\\arguments"))
@@ -1039,8 +1041,6 @@ Rd2txt <-
 	    left <- name
 	    mid <- if(nzchar(package)) paste0("package:", package) else ""
 	    right <- "R Documentation"
-	    if(encoding != "unknown")
-		right <- paste0(right, "(", encoding, ")")
 	    pad <- max(HDR_WIDTH - nchar(left, "w") - nchar(mid, "w") - nchar(right, "w"), 0)
 	    pad0 <- pad %/% 2L
 	    pad1 <- strrep(" ", pad0)

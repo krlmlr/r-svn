@@ -347,10 +347,10 @@ par(\dots, no.readonly = FALSE)
     \item{\code{lend}}{The line end style.  This can be specified as an
       integer or string:
       \describe{
-        \item{\code{0}}{and \code{"round"} mean rounded line caps
+        \item{\code{0} and \code{"round"}}{mean rounded line caps
           [\emph{default}];}
-        \item{\code{1}}{and \code{"butt"} mean butt line caps;}
-        \item{\code{2}}{and \code{"square"} mean square line caps.}
+        \item{\code{1} and \code{"butt"}}{mean butt line caps;}
+        \item{\code{2} and \code{"square"}}{mean square line caps.}
       }
     }
     \item{\code{lheight}}{The line height multiplier.
@@ -362,10 +362,10 @@ par(\dots, no.readonly = FALSE)
     \item{\code{ljoin}}{The line join style.
       This can be specified as an integer or string:
       \describe{
-        \item{\code{0}}{and \code{"round"} mean rounded line joins
+        \item{\code{0} and \code{"round"}}{mean rounded line joins
           [\emph{default}];}
-        \item{\code{1}}{and \code{"mitre"} mean mitred line joins;}
-        \item{\code{2}}{and \code{"bevel"} mean bevelled line joins.}
+        \item{\code{1} and \code{"mitre"}}{mean mitred line joins;}
+        \item{\code{2} and \code{"bevel"}}{mean bevelled line joins.}
       }
     }
     \item{\code{lmitre}}{The line mitre limit.  This controls when
@@ -401,7 +401,7 @@ par(\dots, no.readonly = FALSE)
     \item{\code{mai}}{A numerical vector of the form \code{c(bottom,
         left, top, right)} which gives the margin size specified in
       inches.\cr
-      \if{html}{\figure{mai.png}{options: width="35\%" alt="Figure: mai.png"}}
+      \if{html}{\figure{mai.png}{options: style="width: 35\%;" alt="Figure: mai.png"}}
       \if{latex}{\figure{mai.pdf}{options: width=7cm}}
     }
     \item{\code{mar}}{A numerical vector of the form \code{c(bottom,
@@ -461,7 +461,7 @@ par(\dots, no.readonly = FALSE)
       on a device that does not currently contain a high-level plot.}
     \item{\code{oma}}{A vector of the form \code{c(bottom, left, top,
         right)} giving the size of the outer margins in lines of text.\cr
-      \if{html}{\figure{oma.png}{options: width="25\%" alt="Figure: oma.png"}}
+      \if{html}{\figure{oma.png}{options: style="width: 25\%;" alt="Figure: oma.png"}}
       \if{latex}{\figure{oma.pdf}{options: width=6cm}}
     }
     \item{\code{omd}}{A vector of the form \code{c(x1, x2, y1, y2)}
@@ -667,11 +667,9 @@ par(\dots, no.readonly = FALSE)
 }
 
 \references{
-  Becker, R. A., Chambers, J. M. and Wilks, A. R. (1988)
-  \emph{The New S Language}.
-  Wadsworth & Brooks/Cole.
+  \bibshow{R:Becker+Chambers+Wilks:1988}
 
-  Murrell, P. (2005) \emph{R Graphics}. Chapman & Hall/CRC Press.
+  \bibshow{R:Murrell:2005}
 }
 \seealso{
   \code{\link{plot.default}} for some high-level plotting parameters;

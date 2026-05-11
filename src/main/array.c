@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 1998-2023   The R Core Team
- *  Copyright (C) 2002-2015   The R Foundation
+ *  Copyright (C) 1998-2025   The R Core Team
+ *  Copyright (C) 2002-2025   The R Foundation
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -82,31 +82,21 @@ SEXP GetColNames(SEXP dimnames)
 attribute_hidden SEXP do_matrix(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
     SEXP vals, ans, snr, snc, dimnames;
-    int nr = 1, nc = 1, byrow, miss_nr, miss_nc;
+    int nr = 1, nc = 1, byrow0, miss_nr, miss_nc;
     R_xlen_t lendat;
 
     checkArity(op, args);
     vals = CAR(args); args = CDR(args);
-    switch(TYPEOF(vals)) {
-	case LGLSXP:
-	case INTSXP:
-	case REALSXP:
-	case CPLXSXP:
-	case STRSXP:
-	case RAWSXP:
-	case EXPRSXP:
-	case VECSXP:
-	    break;
-	default:
-	    error(_("'data' must be of a vector type, was '%s'"),
-		R_typeToChar(vals));
-    }
+    if (!isVector(vals))
+	error(_("'data' must be of a vector type, was '%s'"),
+	    R_typeToChar(vals));
     lendat = XLENGTH(vals);
     snr = CAR(args); args = CDR(args);
     snc = CAR(args); args = CDR(args);
-    byrow = asLogical(CAR(args)); args = CDR(args);
-    if (byrow == NA_INTEGER)
+    byrow0 = asLogical(CAR(args)); args = CDR(args);
+    if (byrow0 == NA_INTEGER)
 	error(_("invalid '%s' argument"), "byrow");
+    bool byrow = (bool) byrow0;
     dimnames = CAR(args);
     args = CDR(args);
     miss_nr = asLogical(CAR(args)); args = CDR(args);
@@ -174,18 +164,18 @@ attribute_hidden SEXP do_matrix(SEXP call, SEXP op, SEXP args, SEXP rho)
 	    warning(_("non-empty data for zero-extent matrix"));
     }
 
-#ifndef LONG_VECTOR_SUPPORT
+#ifdef LONG_VECTOR_SUPPORT
+    if ((double)nr * (double)nc > R_XLEN_T_MAX)
+	error(_("too many elements specified"));
+#else
     if ((double)nr * (double)nc > INT_MAX)
 	error(_("too many elements specified"));
 #endif
 
     PROTECT(ans = allocMatrix(TYPEOF(vals), nr, nc));
-    if(lendat) {
-	if (isVector(vals))
-	    copyMatrix(ans, vals, byrow);
-	else
-	    copyListMatrix(ans, vals, byrow);
-    } else if (isVector(vals)) { /* fill with NAs */
+    if(lendat)
+	copyMatrix(ans, vals, byrow);
+    else { /* fill with NAs */
 	R_xlen_t N = (R_xlen_t) nr * nc, i;
 	switch(TYPEOF(vals)) {
 	case STRSXP:
@@ -235,7 +225,10 @@ SEXP allocMatrix(SEXPTYPE mode, int nrow, int ncol)
 
     if (nrow < 0 || ncol < 0)
 	error(_("negative extents to matrix"));
-#ifndef LONG_VECTOR_SUPPORT
+#ifdef LONG_VECTOR_SUPPORT
+    if ((double)nrow * (double)ncol > R_XLEN_T_MAX)
+	error(_("allocMatrix: too many elements specified"));
+#else
     if ((double)nrow * (double)ncol > INT_MAX)
 	error(_("allocMatrix: too many elements specified"));
 #endif
@@ -266,7 +259,10 @@ SEXP alloc3DArray(SEXPTYPE mode, int nrow, int ncol, int nface)
 
     if (nrow < 0 || ncol < 0 || nface < 0)
 	error(_("negative extents to 3D array"));
-#ifndef LONG_VECTOR_SUPPORT
+#ifdef LONG_VECTOR_SUPPORT
+    if ((double)nrow * (double)ncol * (double)nface > R_XLEN_T_MAX)
+	error(_("'alloc3DArray': too many elements specified"));
+#else
     if ((double)nrow * (double)ncol * (double)nface > INT_MAX)
 	error(_("'alloc3DArray': too many elements specified"));
 #endif
@@ -287,13 +283,14 @@ SEXP allocArray(SEXPTYPE mode, SEXP dims)
     SEXP array;
     int i;
     R_xlen_t n = 1;
-#ifndef LONG_VECTOR_SUPPORT
     double dn = 1;
-#endif
 
     for (i = 0; i < LENGTH(dims); i++) {
-#ifndef LONG_VECTOR_SUPPORT
 	dn *= INTEGER(dims)[i];
+#ifdef LONG_VECTOR_SUPPORT
+	if(dn > R_XLEN_T_MAX)
+	    error(_("'allocArray': too many elements specified by 'dims'"));
+#else
 	if(dn > INT_MAX)
 	    error(_("'allocArray': too many elements specified by 'dims'"));
 #endif
@@ -395,12 +392,12 @@ attribute_hidden SEXP DropDims(SEXP x)
 	    setAttrib(newdims, R_NamesSymbol, new_nms);
 	    UNPROTECT(1);
 	}
-	Rboolean havenames = FALSE;
+	bool havenames = false;
 	if (!isNull(dimnames)) {
 	    for (i = 0; i < ndims; i++)
 		if (dim[i] != 1 &&
 		    VECTOR_ELT(dimnames, i) != R_NilValue)
-		    havenames = TRUE;
+		    havenames = true;
 	    if (havenames) {
 		PROTECT(newnames = allocVector(VECSXP, n));
 		PROTECT(newnamesnames = allocVector(STRSXP, n));
@@ -550,7 +547,7 @@ attribute_hidden SEXP do_lengths(SEXP call, SEXP op, SEXP args, SEXP rho)
     if (DispatchOrEval(call, op, "lengths", args, rho, &ans, 0, 1))
       return(ans);
 
-    Rboolean isList = isVectorList(x) || isS4(x);
+    bool isList = isVectorList(x) || isS4(x);
     if(!isList) switch(TYPEOF(x)) {
 	case NILSXP:
 	case CHARSXP:
@@ -639,14 +636,14 @@ attribute_hidden SEXP do_rowscols(SEXP call, SEXP op, SEXP args, SEXP rho)
 
        for (R_xlen_t i = 0; i < n; i++)
            if (!R_FINITE(x[i])) return TRUE;
-       return FALSE;
+       return false;
 
  The present version is imprecise, but faster.
 */
-static Rboolean mayHaveNaNOrInf(double *x, R_xlen_t n)
+static bool mayHaveNaNOrInf(double *x, R_xlen_t n)
 {
     if ((n&1) != 0 && !R_FINITE(x[0]))
-	return TRUE;
+	return true;
     for (R_xlen_t i = n&1; i < n; i += 2)
 	/* A precise version could use this condition:
 	 *
@@ -660,8 +657,8 @@ static Rboolean mayHaveNaNOrInf(double *x, R_xlen_t n)
 	 * large finite values (e.g. 1e308) may be infinite.
 	 */
 	if (!R_FINITE(x[i]+x[i+1]))
-	    return TRUE;
-    return FALSE;
+	    return true;
+    return false;
 }
 
 /*
@@ -671,7 +668,7 @@ static Rboolean mayHaveNaNOrInf(double *x, R_xlen_t n)
  safe here, because the result is only used for an imprecise test for
  the presence of NaN and Inf values.
 */
-static Rboolean mayHaveNaNOrInf_simd(double *x, R_xlen_t n)
+static bool mayHaveNaNOrInf_simd(double *x, R_xlen_t n)
 {
     double s = 0;
     /* SIMD reduction is supported since OpenMP 4.0. The value of _OPENMP is
@@ -686,21 +683,21 @@ static Rboolean mayHaveNaNOrInf_simd(double *x, R_xlen_t n)
     return !R_FINITE(s);
 }
 
-static Rboolean cmayHaveNaNOrInf(Rcomplex *x, R_xlen_t n)
+static bool cmayHaveNaNOrInf(Rcomplex *x, R_xlen_t n)
 {
     /* With HAVE_FORTRAN_DOUBLE_COMPLEX set, it should be clear that
        Rcomplex has no padding, so we could probably use mayHaveNaNOrInf,
        but better safe than sorry... */
     if ((n&1) != 0 && (!R_FINITE(x[0].r) || !R_FINITE(x[0].i)))
-	return TRUE;
+	return true;
     for (R_xlen_t i = n&1; i < n; i += 2)
 	if (!R_FINITE(x[i].r+x[i].i+x[i+1].r+x[i+1].i))
-	    return TRUE;
-    return FALSE;
+	    return true;
+    return false;
 }
 
 /* experimental version for SIMD hardware (see also mayHaveNaNOrInf_simd) */
-static Rboolean cmayHaveNaNOrInf_simd(Rcomplex *x, R_xlen_t n)
+static bool cmayHaveNaNOrInf_simd(Rcomplex *x, R_xlen_t n)
 {
     double s = 0;
     /* _OPENMP >= 201307 - see mayHaveNaNOrInf_simd */
@@ -1253,7 +1250,7 @@ static void tccrossprod(Rcomplex *x, int nrx, int ncx,
 attribute_hidden SEXP do_matprod(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
     // .Primitive() ; may have 1 or 2 args, but some methods have more
-    Rboolean cross = PRIMVAL(op) != 0;
+    bool cross = PRIMVAL(op) != 0;
     int nargs, min_nargs = cross ? 1 : 2;
     if (args == R_NilValue)
 	nargs = 0;
@@ -1284,7 +1281,7 @@ attribute_hidden SEXP do_matprod(SEXP call, SEXP op, SEXP args, SEXP rho)
     if (CDDR(args) != R_NilValue)
 	warningcall(call, _("more than 2 arguments passed to default method of '%s'"),
 		    PRIMNAME(op));
-    Rboolean sym = isNull(y);
+    bool sym = isNull(y);
     if (sym && (PRIMVAL(op) > 0)) y = x;
     if ( !(isNumeric(x) || isComplex(x)) || !(isNumeric(y) || isComplex(y)) )
 	errorcall(call, _("requires numeric/complex matrix/vector arguments"));
@@ -1748,6 +1745,9 @@ attribute_hidden SEXP do_aperm(SEXP call, SEXP op, SEXP args, SEXP rho)
 	    for (i = 0; i < n; i++) pp[i] = INTEGER(perm)[i] - 1;
 	    UNPROTECT(1);
 	}
+        bool skip = true;
+        for (i = 0; i < n; i++) if (pp[i] != i) {skip = false; break;}
+        if (skip) {UNPROTECT(1); return(a);}
     }
 
     R_xlen_t *iip = (R_xlen_t *) R_alloc((size_t) n, sizeof(R_xlen_t));
@@ -1896,35 +1896,34 @@ attribute_hidden SEXP do_aperm(SEXP call, SEXP op, SEXP args, SEXP rho)
 /* colSums(x, n, p, na.rm) and friends */
 attribute_hidden SEXP do_colsum(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
-    SEXP x, ans = R_NilValue;
-    int type;
-    Rboolean NaRm, keepNA;
-
     checkArity(op, args);
-    x = CAR(args); args = CDR(args);
+    SEXP x = CAR(args); args = CDR(args);
     R_xlen_t n = asVecSize(CAR(args)); args = CDR(args);
     R_xlen_t p = asVecSize(CAR(args)); args = CDR(args);
-    NaRm = asLogical(CAR(args));
+    int NaRm = asLogical(CAR(args));
     if (n == NA_INTEGER || n < 0)
 	error(_("invalid '%s' argument"), "n");
     if (p == NA_INTEGER || p < 0)
 	error(_("invalid '%s' argument"), "p");
     if (NaRm == NA_LOGICAL) error(_("invalid '%s' argument"), "na.rm");
-    keepNA = !NaRm;
+    bool keepNA = !NaRm;
 
-    switch (type = TYPEOF(x)) {
+    int type = TYPEOF(x);
+    switch (type) {
     case LGLSXP:
     case INTSXP:
-    case REALSXP: break;
+    case REALSXP:
+    case CPLXSXP: break;
     default:
-	error(_("'x' must be numeric"));
+	error(_("'x' must be numeric or complex"));
     }
     if ((double)n * (double)p > XLENGTH(x))
 	error(_("'x' is too short")); /* PR#16367 */
 
+    SEXP ans = R_NilValue;
     int OP = PRIMVAL(op);
     if (OP == 0 || OP == 1) { /* columns */
-	PROTECT(ans = allocVector(REALSXP, p));
+	ans = PROTECT(allocVector((type == CPLXSXP) ? CPLXSXP : REALSXP, p));
 #ifdef _OPENMP
 	int nthreads;
 	/* This gives a spurious -Wunused-but-set-variable error */
@@ -1936,8 +1935,8 @@ attribute_hidden SEXP do_colsum(SEXP call, SEXP op, SEXP args, SEXP rho)
     firstprivate(x, ans, n, p, type, NaRm, keepNA, R_NaReal, R_NaInt, OP)
 #endif
 	for (R_xlen_t j = 0; j < p; j++) {
-	    R_xlen_t  cnt = n, i;
-	    LDOUBLE sum = 0.0;
+	    R_xlen_t i, cnt = n; // number of non-NA entries per col.
+	    LDOUBLE sum = 0.; /* -Wall */
 	    switch (type) {
 	    case REALSXP:
 	    {
@@ -1947,7 +1946,7 @@ attribute_hidden SEXP do_colsum(SEXP call, SEXP op, SEXP args, SEXP rho)
 		else {
 		    for (cnt = 0, sum = 0., i = 0; i < n; i++, rx++)
 			if (!ISNAN(*rx)) {cnt++; sum += *rx;}
-			else if (keepNA) {sum = NA_REAL; break;} // unused
+		    // else if (keepNA) {sum = NA_REAL; break;}
 		}
 		break;
 	    }
@@ -1967,23 +1966,58 @@ attribute_hidden SEXP do_colsum(SEXP call, SEXP op, SEXP args, SEXP rho)
 		    else if (keepNA) {sum = NA_REAL; break;}
 		break;
 	    }
+	    case CPLXSXP:
+	    {
+		LDOUBLE i_sum = 0.;
+		Rcomplex *cx = COMPLEX(x) + (R_xlen_t)n*j;
+		if (keepNA)
+		    for (sum = 0., i = 0; i < n; i++, cx++) {
+			sum   += cx->r;
+			i_sum += cx->i;
+		    }
+		else {
+		    for (cnt = 0, sum = 0., i_sum = 0., i = 0; i < n; i++, cx++) {
+			if (!ISNAN(cx->r) && !ISNAN(cx->i)) {
+			    cnt++;
+			    sum   += cx->r;
+			    i_sum += cx->i;
+			}
+		    }
+		}
+		if (OP == 1) {
+		    sum   /= cnt; /* NaN for cnt = 0 */
+		    i_sum /= cnt;
+		}
+		Rcomplex csum = { .r = sum, .i = i_sum };
+		COMPLEX(ans)[j] = csum;
+		continue; /* for(j ...) loop */
 	    }
-	    if (OP == 1) sum /= cnt; /* gives NaN for cnt = 0 */
+	    } // switch()
+	    if (OP == 1) sum /= cnt; /* mean() -- gives NaN for cnt = 0 */
 	    REAL(ans)[j] = (double) sum;
-	}
+	} // for (j ..)
     }
     else { /* rows */
-	PROTECT(ans = allocVector(REALSXP, n));
-
+	ans = PROTECT(allocVector((type == CPLXSXP) ? CPLXSXP : REALSXP, n));
 	/* allocate scratch storage to allow accumulating by columns
 	   to improve cache hits */
 	int *Cnt = NULL;
 	LDOUBLE *rans;
+	LDOUBLE *ians = NULL; // unused unless CPLXSXP
 	if(n <= 10000) {
 	    R_CheckStack2(n * sizeof(LDOUBLE));
 	    rans = (LDOUBLE *) alloca(n * sizeof(LDOUBLE));
+	    if(type == CPLXSXP) {
+		R_CheckStack2(n * sizeof(LDOUBLE));
+		ians = (LDOUBLE *) alloca(n * sizeof(LDOUBLE));
+		Memzero(ians, n);
+	    }
 	    Memzero(rans, n);
-	} else rans = R_Calloc(n, LDOUBLE);
+	} else {
+	    rans = R_Calloc(n, LDOUBLE);
+	    if(type == CPLXSXP)
+		ians = R_Calloc(n, LDOUBLE);
+	}
 	if (!keepNA && OP == 3) Cnt = R_Calloc(n, int);
 
 	for (R_xlen_t j = 0; j < p; j++) {
@@ -2030,25 +2064,69 @@ attribute_hidden SEXP do_colsum(SEXP call, SEXP op, SEXP args, SEXP rho)
 		    }
 		break;
 	    }
+	    case CPLXSXP:
+	    {
+		LDOUBLE *ia = ians;
+		Rcomplex *cx = COMPLEX(x) + (R_xlen_t)n * j;
+
+		if (keepNA)
+		    for (R_xlen_t i = 0; i < n; i++, cx++) {
+			*ra++ += cx->r;
+			*ia++ += cx->i;
+		    }
+		else
+		    for (R_xlen_t i = 0; i < n; i++, ra++, ia++, cx++)
+			if (!ISNAN(cx->r) && !ISNAN(cx->i)) {
+			    *ra += cx->r;
+			    *ia += cx->i;
+			    if (OP == 3) Cnt[i]++;
+			}
+		break;
+	    }
+
+	    } // switch()
+	} // for(j ...)
+
+	if (OP == 3) { /* mean() */
+	    if (keepNA) {
+		if(type == CPLXSXP) {
+		    for (R_xlen_t i = 0; i < n; i++) { rans[i] /= p; ians[i] /= p; }
+		} else {
+		    for (R_xlen_t i = 0; i < n; i++) rans[i] /= p;
+		}
+	    } else {
+		if(type == CPLXSXP) {
+		    for (R_xlen_t i = 0; i < n; i++) {
+			rans[i] /= Cnt[i]; ians[i] /= Cnt[i]; /* gives NaN for Cnt[i] = 0 */
+		    }
+		} else {
+		    for (R_xlen_t i = 0; i < n; i++) rans[i] /= Cnt[i]; /* gives NaN for Cnt[i] = 0 */
+		}
 	    }
 	}
-	if (OP == 3) {
-	    if (keepNA)
-		for (R_xlen_t i = 0; i < n; i++) rans[i] /= p;
-	    else
-		for (R_xlen_t i = 0; i < n; i++) rans[i] /= Cnt[i];
+	if(type == CPLXSXP) {
+	    for (R_xlen_t i = 0; i < n; i++) {
+		Rcomplex csum = { .r = rans[i], .i = ians[i] };
+		COMPLEX(ans)[i] = csum;
+	    }
+	} else {
+	    for (R_xlen_t i = 0; i < n; i++)
+		REAL(ans)[i] = (double) rans[i];
 	}
-	for (R_xlen_t i = 0; i < n; i++) REAL(ans)[i] = (double) rans[i];
 
 	if (!keepNA && OP == 3) R_Free(Cnt);
-	if(n > 10000) R_Free(rans);
+	if(n > 10000) {
+	    R_Free(rans);
+	    if(type == CPLXSXP)
+		R_Free(ians);
+	}
     }
 
     UNPROTECT(1);
     return ans;
 }
 
-/*
+/* Former  R version   of  array(data, dim, dimnames) :
 {
     data <- as.vector(data)
     dim <- as.integer(dim)
@@ -2069,11 +2147,8 @@ attribute_hidden SEXP do_colsum(SEXP call, SEXP op, SEXP args, SEXP rho)
 /* array(data, dim, dimnames) */
 attribute_hidden SEXP do_array(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
-    SEXP vals, ans, dims, dimnames;
-    R_xlen_t lendat, i, nans;
-
     checkArity(op, args);
-    vals = CAR(args);
+    SEXP vals = CAR(args); // = data
     /* at least NULL can get here */
     switch(TYPEOF(vals)) {
 	case LGLSXP:
@@ -2089,18 +2164,21 @@ attribute_hidden SEXP do_array(SEXP call, SEXP op, SEXP args, SEXP rho)
 	    error(_("'data' must be of a vector type, was '%s'"),
 		R_typeToChar(vals));
     }
-    lendat = XLENGTH(vals);
-    dims = CADR(args);
-    dimnames = CADDR(args);
+    SEXP ans,
+	dims     = CADR(args),
+	dimnames = CADDR(args);
     PROTECT(dims = coerceVector(dims, INTSXP));
     int nd = LENGTH(dims);
-    if (nd == 0) error(_("'dims' cannot be of length 0"));
+    if (nd == 0) error(_("'dim' cannot be of length 0"));
     double d = 1.0;
     for (int j = 0; j < nd; j++) d *= INTEGER(dims)[j];
-#ifndef LONG_VECTOR_SUPPORT
+#ifdef LONG_VECTOR_SUPPORT
+    if (d > R_XLEN_T_MAX) error(_("too many elements specified"));
+#else
     if (d > INT_MAX) error(_("too many elements specified"));
 #endif
-    nans = (R_xlen_t) d;
+    R_xlen_t lendat = XLENGTH(vals),
+	i, nans = (R_xlen_t) d;
 
     PROTECT(ans = allocVector(TYPEOF(vals), nans));
     switch(TYPEOF(vals)) {
@@ -2158,7 +2236,7 @@ attribute_hidden SEXP do_array(SEXP call, SEXP op, SEXP args, SEXP rho)
 	    /* Need to guard against possible sharing of values under
 	       NAMED.  This is not needed with reference
 	       coutning. (PR#15919) */
-	    Rboolean needsmark = (lendat < nans || MAYBE_REFERENCED(vals));
+	    bool needsmark = (lendat < nans || MAYBE_REFERENCED(vals));
 	    for (i = 0; i < nans; i++) {
 		SEXP elt = VECTOR_ELT(vals, i % lendat);
 		if (needsmark || MAYBE_REFERENCED(elt))
@@ -2204,7 +2282,10 @@ attribute_hidden SEXP do_diag(SEXP call, SEXP op, SEXP args, SEXP rho)
     if (mn > 0 && length(x) == 0)
 	error(_("'x' must have positive length"));
 
-#ifndef LONG_VECTOR_SUPPORT
+#ifdef LONG_VECTOR_SUPPORT
+   if ((double)nr * (double)nc > R_XLEN_T_MAX)
+	error(_("too many elements specified"));
+#else
    if ((double)nr * (double)nc > INT_MAX)
 	error(_("too many elements specified"));
 #endif
@@ -2359,14 +2440,14 @@ attribute_hidden SEXP do_asplit(SEXP call, SEXP op, SEXP args, SEXP rho)
     SEXP x = CAR(args);   args = CDR(args);
     SEXP da = CAR(args);  args = CDR(args);
     SEXP dc = CAR(args);  args = CDR(args);
-    SEXP dna = CAR(args); args = CDR(args); 
+    SEXP dna = CAR(args); args = CDR(args);
     SEXP dnc = CAR(args); args = CDR(args);
     SEXP d1 = CAR(args);  args = CDR(args);
     SEXP d2 = CAR(args);  args = CDR(args);
     SEXP drop = CAR(args);
     SEXP y, e;
     int i, j, k, n1, n2;
-    Rboolean havednc, keepdim;
+    bool havednc, keepdim;
     n1 = asInteger(d1);
     n2 = asInteger(d2);
     havednc = (!isNull(dnc) && length(dnc) > 0);

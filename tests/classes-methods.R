@@ -3,6 +3,22 @@
 ###	all "Matrix" + "late_and_no-relevant-print" now here
 #### - No *.Rout.save <==> use stopifnot() etc for testing
 #### - Recommended packages allowed, e.g., "Matrix"
+
+## Method for implicit generic 'norm' (x="ANY", type="missing") -- test *before* Matrix is loaded
+setClass("zzz", slots = c(x = "NULL"))
+setMethod("norm", c(x = "zzz", type = "character"), function (x, type, ...) "ok")
+m1 <- getMethod("norm", c(x = "ANY", type = "missing"))
+m2 <- selectMethod("norm", c(x = "zzz", type = "missing"))
+x <- new("zzz")
+stopifnot(is(m1, "MethodDefinition"),
+          is(m2, "MethodDefinition"),
+          identical(getDataPart(m1), getDataPart(m2)),
+          identical(norm(x, "O"), "ok"),
+          identical(norm(x     ), "ok"), # was Error .... : invalid 'x': type "S4"
+          removeGeneric("norm"),
+          removeClass("zzz"))
+
+
 if(require("Matrix", lib.loc = .Library, quietly = TRUE)) {
     D5. <- Diagonal(x = 5:1)
     D5N <- D5.; D5N[5,5] <- NA
@@ -192,6 +208,42 @@ if(hasME) {
         unloadNamespace(pkg)
 }
 
+
+## trace(), debug() etc for  coerce methods -- PR#18823
+trr <- quote(list(.Generic, .Method, .defined, .target))
+sig <- c("ANY", "logical")
+m0 <- selectMethod(coerce, signature = sig)
+a0 <- as(0, "logical") # just `FALSE`
+trace(coerce, tracer = trr, signature = sig)
+m1 <- selectMethod(coerce, signature = sig)
+a1 <- as(0, "logical") # error  "object '.Generic' not found"  in R <= 4.4.3
+untrace(coerce, signature = sig)
+m2 <- selectMethod(coerce, signature = sig)
+stopifnot( is(m0, "MethodDefinition"),
+          !is(m0, "MethodDefinitionWithTrace"),
+           is(m1, "MethodDefinitionWithTrace"),
+          identical(m0, m2), identical(a0, a1))
+
+## Checking that "simple" as() still works:
+setClass("A", slots = c(x = "NULL"))
+setClass("B", slots = c(x = "NULL"))
+setIs("A", "B",
+      test = function(.) { TRUE },
+      coerce = function(.) new("B"),
+      replace = function(., value) new("B"))
+B <- as(new("A"), "B") ## gave  Error in asMethod@generic :  ... `@` applied to ... "function"
+stopifnot(identical(B, new("B")))
+
+
+## toeplitz() implicit generic
+x <- c(-1, 0,0)
+r <- c(-1,11,0)
+(T3 <- toeplitz(x, r))
+## dummy method triggering (implicit) creation of S4 generic and default
+setMethod("toeplitz", "A", function(x, ...) x)
+ (mm <- selectMethod(toeplitz, "numeric"))
+stopifnot(identical(T3, print(toeplitz(x, r))), removeGeneric("toeplitz"))
+## badly failed since r82364 when stats::toeplitz was generalized to 3 args
 
 
 cat('Time elapsed: ', proc.time(),'\n')

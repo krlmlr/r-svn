@@ -268,7 +268,7 @@ completeClassDefinition <-
             for(i in seq_along(ext)) {
                 eClass <- ext[[i]]
                 if(isClass(eClass, where = where))
-                    superProps[[i+1]] <- getClassDef(eClass, where = where)@slots
+                    superProps[[i+1L]] <- getClassDef(eClass, where = where)@slots
             }
             properties <- unlist(superProps, recursive = FALSE)
             ## check for conflicting slot names
@@ -419,7 +419,7 @@ superClassDepth <-
             more <- Recall(superClass, soFar)
             whatMore <- more$label
             if(!all(is.na(match(whatMore, soFar)))) {
-                ## elminate classes reachable by more than one path
+                ## eliminate classes reachable by more than one path
                 ## (This is allowed in the model, however)
                 ok <- is.na(match(whatMore, soFar))
                 more$depth <- more$depth[ok]
@@ -1229,7 +1229,7 @@ completeSubclasses <-
       what2 <- what[affected]
       dups <- unique(what2[duplicated(what2)])
       if(length(dups) == 0) {
-        ##  eliminating conditonal relations removed duplicates
+        ##  eliminating conditional relations removed duplicates
         if(length(conflicts) > 0)
           attr(ext, "conflicts") <- unique(c(conflicts, attr(ext, "conflicts")))
         return(ext)
@@ -1708,7 +1708,7 @@ newClassRepresentation <- function(...) {
 .insertExpr <- function(expr, el) {
     if(!is(expr, "{"))
         expr <- substitute({EXPR}, list(EXPR = expr))
-    expr[3L:(length(expr)+1)] <- expr[2L:length(expr)]
+    expr[3L:(length(expr)+1L)] <- expr[2L:length(expr)]
     expr[[2L]] <- el
     expr
 }
@@ -2032,7 +2032,7 @@ assign("#HAS_DUPLICATE_CLASS_NAMES", FALSE, envir = .classTable)
         i <- match(newpkg, names(prev))
         if(!is.na(i))
             prev[[i]] <- NULL
-        else # we might warn about unchaching more than once
+        else # we might warn about uncaching more than once
             return()
         if(length(prev) == 0L)
             return(remove(list = name, envir = .classTable))
@@ -2400,22 +2400,21 @@ classesToAM <- function(classes, includeSubclasses = FALSE,
         score <- vapply(subNames, problems, NA, x=possibles[[i]])
         scores[[i]] <- whichCase[score]
         if(!any(score))
-          return(-candidates[[i]]+1)
+          return(-candidates[[i]]+1L)
     }
     # the first min. scoring possibility and its score
     i <- which.min(lengths(scores))
-    list(-candidates[[i]]+1, scores[[i]])
+    list(-candidates[[i]]+1L, scores[[i]])
 }
 
 .checkGeneric <- function(what, where) {
   .checkFun <-  function(x) {
-      maybe <- if(!is.null(f <- get0(x, where))) is.function(f) else FALSE
-      if(maybe)
-        maybe <- is(f, "genericFunction") ||
-              (length(grep("UseMethod", deparse(f))) > 0) ||
-              is.primitive(f)
-      maybe
-    }
+      if(!is.null(f <- get0(x, where, mode = "function")))
+        is(f, "genericFunction") ||
+            any(grepl("UseMethod", deparse(f), fixed=TRUE)) ||
+            is.primitive(f)
+      else FALSE
+  }
   vapply(what, .checkFun, NA)
 }
 
@@ -2423,7 +2422,7 @@ classesToAM <- function(classes, includeSubclasses = FALSE,
 S3forS4Methods <- function(where, checkClasses = character()) {
   allClasses <- getClasses(where)
   if(length(checkClasses) > 0)
-    allClasses <- allClasses[match(allClasses, checkClasses, 0) > 0]
+    allClasses <- allClasses[allClasses %in% checkClasses]
   if(length(allClasses) == 0)
     return(allClasses)
   pattern <- paste0("([.]",allClasses, "$)", collapse="|")

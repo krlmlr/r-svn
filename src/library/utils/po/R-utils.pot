@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: R 4.5.0\n"
+"Project-Id-Version: R 4.6.0\n"
 "Report-Msgid-Bugs-To: bugs.r-project.org\n"
-"POT-Creation-Date: 2024-10-25 14:50\n"
+"POT-Creation-Date: 2026-03-10 10:06\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -24,7 +24,7 @@ msgstr ""
 msgid "some options in argument 'restrict' were not recognized and hence ignored"
 msgstr ""
 
-msgid "argument 'format' is deprecated and has no affect on search results"
+msgid "argument 'format' is deprecated and has no effect on search results"
 msgstr ""
 
 msgid "A search query has been submitted to %s"
@@ -61,9 +61,6 @@ msgid "Warning: unknown option '--clean='%s"
 msgstr ""
 
 msgid "Warning: unknown option %s"
-msgstr ""
-
-msgid "Output file:"
 msgstr ""
 
 msgid "Compacting PDF document"
@@ -268,6 +265,9 @@ msgid "Enter an environment number, or 0 to exit"
 msgstr ""
 
 msgid "recover called non-interactively; frames dumped, use debugger() to view"
+msgstr ""
+
+msgid "Enter a frame number, or 0 to exit"
 msgstr ""
 
 msgid "No suitable frames for recover()"
@@ -570,13 +570,13 @@ msgstr ""
 msgid "'list' must be a character vector naming R objects"
 msgstr ""
 
-msgid "no R objects specified or available"
-msgstr ""
-
 msgid "directory '%s' already exists"
 msgstr ""
 
 msgid "generic functions and other S4 objects (e.g., '%s') cannot be dumped; use the 'code_files' argument"
+msgstr ""
+
+msgid "'download.file()' error code '%d'"
 msgstr ""
 
 msgid "unable to access index for repository %s"
@@ -618,9 +618,6 @@ msgstr ""
 msgid "no package %s at the repositories"
 msgstr ""
 
-msgid "invalid 'type'"
-msgstr ""
-
 msgid "package %s does not exist on the local repository"
 msgstr ""
 
@@ -633,7 +630,7 @@ msgstr ""
 msgid "trying to use CRAN without setting a mirror"
 msgstr ""
 
-msgid "'download.file()' error code '%d'"
+msgid "invalid 'type'"
 msgstr ""
 
 msgid "failed to download mirrors file (%s); using local file '%s'"
@@ -708,10 +705,7 @@ msgstr ""
 msgid "source repository is unavailable to check versions"
 msgstr ""
 
-msgid "cannot install macOS binary packages on Windows"
-msgstr ""
-
-msgid "cannot install macOS binary packages on this platform"
+msgid "cannot install binary packages from other operating systems on Windows"
 msgstr ""
 
 msgid "cannot install Windows binary packages on this platform"
@@ -987,16 +981,19 @@ msgstr ""
 msgid "xz"
 msgstr ""
 
+msgid "zstd"
+msgstr ""
+
 msgid "failed to create directory %s"
 msgstr ""
 
 msgid "invalid octal digit"
 msgstr ""
 
-msgid "removing drive '%s'"
+msgid "removing leading '/' from '%s'"
 msgstr ""
 
-msgid "removing leading '/'"
+msgid "removing drive '%s'"
 msgstr ""
 
 msgid "path starts with '~'"
@@ -1005,7 +1002,7 @@ msgstr ""
 msgid "path contains '..'"
 msgstr ""
 
-msgid "path is empty"
+msgid "cannot extract through symlink"
 msgstr ""
 
 msgid "'tarfile' must be a character string or a connection"
@@ -1024,6 +1021,9 @@ msgid "checksum error for entry '%s'"
 msgstr ""
 
 msgid "failed to copy %s to %s"
+msgstr ""
+
+msgid "cannot restore symbolic link from %s to %s as a file copy, because the source doesn't exist; try extracting again?"
 msgstr ""
 
 msgid "unsupported entry type"
@@ -1128,10 +1128,16 @@ msgstr ""
 msgid "download had nonzero exit status"
 msgstr ""
 
+msgid "Built: value is not a string"
+msgstr ""
+
 msgid "'tar' returned non-zero exit code %d"
 msgstr ""
 
-msgid "file %s is not a macOS binary package"
+msgid "file %s is not a binary package"
+msgstr ""
+
+msgid "binary package %s is not compatible with this build of R"
 msgstr ""
 
 msgid "package %s successfully unpacked and MD5 sums checked"
@@ -1155,16 +1161,19 @@ msgstr ""
 msgid "The downloaded binary packages are in\n\t%s"
 msgstr ""
 
-msgid "'memory.size()' is Windows-specific"
+msgid "'memory.size()' is no longer supported"
 msgstr ""
 
-msgid "'memory.limit()' is Windows-specific"
+msgid "'memory.limit()' is no longer supported"
 msgstr ""
 
 msgid "method 'mailx' is Unix-only"
 msgstr ""
 
 msgid "zip file %s not found"
+msgstr ""
+
+msgid "cannot extract package from %s"
 msgstr ""
 
 msgid "failed to create %s"
@@ -1182,12 +1191,6 @@ msgstr ""
 msgid "Only '*.zip' and '*.tar.gz' files can be installed."
 msgstr ""
 
-msgid "'memory.size()' is no longer supported"
-msgstr ""
-
-msgid "'memory.limit()' is no longer supported"
-msgstr ""
-
 msgid "winDialog() cannot be used non-interactively"
 msgstr ""
 
@@ -1196,6 +1199,11 @@ msgstr ""
 
 msgid        "%d Sweave file for basename %s found"
 msgid_plural "%d Sweave files for basename %s found"
+msgstr[0]    ""
+msgstr[1]    ""
+
+msgid        "Output file:  "
+msgid_plural "Output files:  "
 msgstr[0]    ""
 msgstr[1]    ""
 
@@ -1216,6 +1224,11 @@ msgstr[1]    ""
 
 msgid        "Invalid ORCID iD: %s."
 msgid_plural "Invalid ORCID iDs: %s."
+msgstr[0]    ""
+msgstr[1]    ""
+
+msgid        "Invalid ROR ID: %s."
+msgid_plural "Invalid ROR IDs: %s."
 msgstr[0]    ""
 msgstr[1]    ""
 

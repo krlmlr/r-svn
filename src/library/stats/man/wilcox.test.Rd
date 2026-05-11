@@ -1,6 +1,6 @@
 % File src/library/stats/man/wilcox.test.Rd
 % Part of the R package, https://www.R-project.org
-% Copyright 1995-2024 R Core Team
+% Copyright 1995-2026 R Core Team
 % Distributed under GPL 2 or later
 
 \name{wilcox.test}
@@ -39,7 +39,9 @@ wilcox.test(x, \dots)
   \item{exact}{a logical indicating whether an exact p-value
     should be computed.}
   \item{correct}{a logical indicating whether to apply continuity
-    correction in the normal approximation for the p-value.}
+    correction in the normal approximation for the p-value, or an
+    integer \eqn{k} between 0 and 3 giving the number of correction
+    terms to use from the \I{Edgeworth} series for the normal approximation.}
   \item{conf.int}{a logical indicating whether a confidence interval
     should be computed.}
   \item{conf.level}{confidence level of the interval.}
@@ -85,8 +87,19 @@ wilcox.test(x, \dots)
   of \code{y}).
 
   By default (if \code{exact} is not specified), an exact p-value
-  is computed if the samples contain less than 50 finite values and
-  there are no ties.  Otherwise, a normal approximation is used.
+  is computed if the samples contain less than 50 finite values.
+  Otherwise, a normal approximation is used.  If there are ties, exact
+  inference is performed using the conditional/permutation distribution
+  given the observed ranks, using an implementation of the
+  \I{Streitberg}--\I{Röhmel} shift algorithm
+  \bibcitep{R:Streitberg+Roehmel:1986, R:Streitberg+Roehmel:1987}
+  contributed by \I{Torsten Hothorn}.
+
+  If the normal approximation is used and there are no ties, improved
+  asymptotic p-values can be obtained via including up to \eqn{k = 3}
+  correction terms of the \I{Edgeworth} series for the normal approximation,
+  as given in \bibcitet{R:Fellingham+Stoker:1964} for the signed rank
+  test and in \bibcitet{R:Fix+Hodges_Jr_:1955} for the rank sum test.
 
   For stability reasons, it may be advisable to use rounded data or to set
   \code{digits.rank = 7}, say, such that determination of ties does not
@@ -98,15 +111,16 @@ wilcox.test(x, \dots)
   computed.  (The pseudomedian of a distribution \eqn{F} is the median
   of the distribution of \eqn{(u+v)/2}, where \eqn{u} and \eqn{v} are
   independent, each with distribution \eqn{F}.  If \eqn{F} is symmetric,
-  then the pseudomedian and median coincide.  See Hollander & Wolfe
-  (1973), page 34.)  Note that in the two-sample case the estimator for
+  then the pseudomedian and median coincide.
+  See \bibcitet{|R:Hollander+Wolfe:1973|page 34}.)
+  Note that in the two-sample case the estimator for
   the difference in location parameters does \bold{not} estimate the
   difference in medians (a common misconception) but rather the median
   of the difference between a sample from \code{x} and a sample from
   \code{y}.
 
   If exact p-values are available, an exact confidence interval is
-  obtained by the algorithm described in Bauer (1972), and the
+  obtained by the algorithm described in \bibcitet{R:Bauer:1972}, and the
   \I{Hodges}-\I{Lehmann} estimator is employed.  Otherwise, the returned
   confidence interval and point estimate are based on normal
   approximations.  These are continuity-corrected for the interval but
@@ -154,22 +168,13 @@ wilcox.test(x, \dots)
   \code{x[i]}, the most common definition of the Mann-Whitney test.
 }
 \section{Warning}{
-  This function can use large amounts of memory and stack (and even
-  crash \R if the stack limit is exceeded) if \code{exact = TRUE} and
-  one sample is large (several thousands or more).
+  This function can take very long time to run if \code{exact = TRUE}
+  and one sample is large (several thousands or more).
 }
 \references{
-  David F. Bauer (1972).
-  Constructing confidence sets using rank statistics.
-  \emph{Journal of the American Statistical Association}
-  \bold{67}, 687--690.
-  \doi{10.1080/01621459.1972.10481279}.
-
-  Myles Hollander and Douglas A. Wolfe (1973).
-  \emph{Nonparametric Statistical Methods}.
-  New York: John Wiley & Sons.
-  Pages 27--33 (one-sample), 68--75 (two-sample).\cr
-  Or second edition (1999).
+  \bibinfo{R:Hollander+Wolfe:1973}{note}{Pages 27--33 (one-sample),
+    68--75 (two-sample)}
+  \bibshow{*}
 }
 \seealso{
   \code{\link{psignrank}}, \code{\link{pwilcox}}.
@@ -220,14 +225,14 @@ wilcox.test(x, y, alternative = "greater",
 
 wilcox.test(rnorm(10), rnorm(10, 2), conf.int = TRUE)
 
-## Formula interface.
-boxplot(Ozone ~ Month, data = airquality)
+## Formula interface -- NB: boxplot notches <~~> test for median equality:
+boxplot(Ozone ~ Month, data = airquality, notch = TRUE, warnN = FALSE)
 wilcox.test(Ozone ~ Month, data = airquality,
             subset = Month \%in\% c(5, 8))
 
 ## accuracy in ties determination via 'digits.rank':
-wilcox.test( 4:2,      3:1,     paired=TRUE) # Warning:  cannot compute exact p-value with ties
-wilcox.test((4:2)/10, (3:1)/10, paired=TRUE) # no ties => *no* warning
+wilcox.test( 4:2,      3:1,     paired=TRUE) 
+wilcox.test((4:2)/10, (3:1)/10, paired=TRUE) 
 wilcox.test((4:2)/10, (3:1)/10, paired=TRUE, digits.rank = 9) # same ties as (4:2, 3:1)
 }
 \keyword{htest}

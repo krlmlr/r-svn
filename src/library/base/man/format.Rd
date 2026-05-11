@@ -1,6 +1,6 @@
 % File src/library/base/man/format.Rd
 % Part of the R package, https://www.R-project.org
-% Copyright 1995-2024 R Core Team
+% Copyright 1995-2025 R Core Team
 % Copyright 2003-2016 The R Foundation
 % Distributed under GPL 2 or later
 
@@ -50,7 +50,7 @@ format(x, \dots)
 
   \item{nsmall}{the minimum number of digits to the right of the decimal
     point in formatting real/complex numbers in non-scientific formats.
-    Allowed values are \code{0 <= nsmall <= 20}.}
+    Allowed values are \eqn{0 \le \code{nsmall} \le 20}.}
 
   \item{justify}{should a \emph{character} vector be left-justified (the
     default), right-justified, centred or left alone.  Can be abbreviated.}
@@ -146,17 +146,16 @@ format(x, \dots)
   attributes are copied.
 
   If \code{x} is a list, the result is a character vector obtained by
-  applying \code{format.default(x, \dots)} to each element of the list
+  applying \code{format(x, \dots)} (instead of \code{format.default(x,
+  \dots)} in \R <= 4.5.z) to each element of the list
   (after \I{\code{\link{unlist}}ing} elements which are themselves lists),
   and then collapsing the result for each element with
-  \code{paste(collapse = ", ")}.  The defaults in this case are
+  \code{paste0(collapse = ", ")}.  The defaults in this case are
   \code{trim = TRUE, justify = "none"} since one does not usually want
   alignment in the collapsed strings.
 }
 \references{
-  Becker, R. A., Chambers, J. M. and Wilks, A. R. (1988)
-  \emph{The New S Language}.
-  Wadsworth & Brooks/Cole.
+  \bibshow{R:Becker+Chambers+Wilks:1988}
 }
 
 \seealso{

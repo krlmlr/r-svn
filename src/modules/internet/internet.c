@@ -331,7 +331,7 @@ static SEXP in_do_download(SEXP args)
     if(length(sfile) > 1)
 	warning(_("only first element of 'destfile' argument used"));
     file = translateChar(STRING_ELT(sfile, 0));
-    IDquiet = quiet = asLogical(CAR(args)); args = CDR(args);
+    IDquiet = quiet = asRbool(CAR(args), R_NilValue); args = CDR(args);
     if(quiet == NA_LOGICAL)
 	error(_("invalid '%s' argument"), "quiet");
     smode =  CAR(args); args = CDR(args);
@@ -541,6 +541,9 @@ static void *in_R_HTTPOpen2(const char *url, const char *agent, const char *head
     char buf[101], *p;
 
     wictxt = (WIctxt) malloc(sizeof(wIctxt));
+    if (!wictxt)
+	return NULL;
+
     wictxt->length = -1;
     wictxt->type = NULL;
     wictxt->hand =
@@ -651,6 +654,8 @@ static void *in_R_FTPOpen2(const char *url)
     WIctxt  wictxt;
 
     wictxt = (WIctxt) malloc(sizeof(wIctxt));
+    if (!wictxt)
+	return NULL;
     wictxt->length = -1;
     wictxt->type = NULL;
 

@@ -6,13 +6,7 @@ ECHO = echo
 
 include ../../src/gnuwin32/MkRules
 
-ifeq "$(MIKTEX)" "TRUE"
-R_TEXOPTS = --include-directory=../../share/texmf/tex/latex
-# TEXI2DVI = texi2dvi
-else
 R_TEXOPTS =
-# TEXI2DVI =
-endif
 
 R_EXE = ../../$(BINDIR)/Rterm
 
@@ -29,7 +23,6 @@ OBJECTS_HTML = $(SOURCES_TEXI:.texi=.html)
 OBJECTS_INFO = $(SOURCES_TEXI:.texi=.info)
 OBJECTS_PDF = $(SOURCES_TEXI:.texi=.pdf)
 
-## Now set in MkRules
 PDFLATEX = pdflatex $(R_TEXOPTS)
 PDFTEX = pdftex $(R_TEXOPTS)
 BATCHPDFLATEX = $(PDFLATEX) -interaction=nonstopmode
@@ -172,7 +165,7 @@ version.texi: Makefile.win $(top_srcdir)/VERSION $(SVN_REV)
 	  $(ECHO) "@set VERSION $${v}" >> $@; \
 	  rwv=$(shell ../../bin$(R_ARCH)/Rscript ../../src/gnuwin32/fixed/rwver.R); \
 	  $(ECHO) "@set RWVERSION $${rwv}" >> $@; \
-	  rwtv=`$(ECHO) $${rwv} | sed -e 's/\.[^.]\+$$//'`; \
+	  rwtv=`$(ECHO) $${rwv} | sed -e 's/\.[^.]*$$//'`; \
 	  $(ECHO) "@set RWTVERSION $${rwtv}" >> $@ )
 	@if test "$(R_PAPERSIZE)" = "a4"; then \
 	  $(ECHO) "@afourpaper" >> $@ ; \
@@ -184,7 +177,7 @@ clean:
 	@-rm -f *.aux *.toc *refman.i?? *.out *.log
 	@-rm -f *.cp *.cps *.fn *.fns *.ky *.kys \
 	  *.out *.pg *.pgs *.tmp *.tp *.vr *.vrs \
-	  R-admin.en* R-exts.ae* R-exts.ap* R-exts.em* \
+	  R-admin.en* R-exts.ae* R-exts.ap* R-exts.em* R-exts.for* \
 	  version.tex version.texi refman.tex fullrefman.tex *-pkg.tex
 distclean: clean
 	@-rm -f *.pdf *.info* *.html
@@ -238,7 +231,6 @@ endif
 
 rw-FAQ.pdf: rw-FAQ.texi $(top_srcdir)/VERSION $(srcdir)/R-defs.texi
 	@$(SED) $(SEDVER) $< > tmp_pdf.texi
-	@$(TEXI2DVI) --pdf tmp_pdf.texi
 	@$(TEXI2DVI) --pdf tmp_pdf.texi
 	@mv tmp_pdf.pdf $@
 	@rm tmp_pdf.*

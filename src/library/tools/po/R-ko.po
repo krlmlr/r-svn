@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R-3.5.0\n"
 "Report-Msgid-Bugs-To: bugs.r-project.org\n"
-"POT-Creation-Date: 2024-10-25 14:49\n"
+"POT-Creation-Date: 2026-03-07 12:17\n"
 "PO-Revision-Date: 2018-04-09 12:11-0600\n"
 "Last-Translator: Chel Hee Lee <gnustats@gmail.com>\n"
 "Language-Team: \n"
@@ -280,6 +280,14 @@ msgstr "Authors@R 항목에서 메인테이너의 역할을 담당하는 저자�
 msgid "Authors@R field gives persons with duplicated ORCID identifiers:"
 msgstr "Authors@R 항목에서 메인테이너의 역할을 담당하는 저자의 수가 한명이상임을 확인하게 되었습니다:"
 
+#, fuzzy
+msgid "Authors@R field gives persons with invalid ROR identifiers:"
+msgstr "Authors@R 항목에서 메인테이너의 역할을 담당하는 저자의 수가 한명이상임을 확인하게 되었습니다:"
+
+#, fuzzy
+msgid "Authors@R field gives persons with duplicated ROR identifiers:"
+msgstr "Authors@R 항목에서 메인테이너의 역할을 담당하는 저자의 수가 한명이상임을 확인하게 되었습니다:"
+
 msgid "Encoding '%s' is not portable"
 msgstr "인코딩 '%s'은 포터블(portable)하지 않습니다."
 
@@ -317,9 +325,6 @@ msgstr ""
 msgid "License stub records with missing/empty fields:"
 msgstr "이름이 없는 Rd 객체들은 다루어질 수 없습니다"
 
-msgid "Uses ACM license: only appropriate for pre-2013 ACM TOMS code"
-msgstr ""
-
 msgid "Non-portable flags in variable '%s':"
 msgstr ""
 
@@ -334,11 +339,11 @@ msgid "invalid 'OS.type' \"%s\".  Should not happen"
 msgstr ""
 
 #, fuzzy
-msgid "Missing link or links in Rd file '%s':"
+msgid "Missing link(s) in Rd file '%s':"
 msgstr "다큐멘테이션 객체 '%s'내에서 빠져있는 링크(들)은 다음과 같습니다:"
 
 #, fuzzy
-msgid "Non-file package-anchored link(s) in Rd file '%s':"
+msgid "Non-topic package-anchored link(s) in Rd file '%s':"
 msgstr "다큐멘테이션 객체 '%s'내에서 빠져있는 링크(들)은 다음과 같습니다:"
 
 msgid "See section 'Cross-references' in the 'Writing R Extensions' manual."
@@ -502,7 +507,7 @@ msgid "Auto-generated content requiring editing in Rd file '%s':"
 msgstr "다음은 Rd 객체 '%s'를 편집하는데 필요한 자동으로 생성된 컨텐츠입니다:"
 
 #, fuzzy
-msgid "Rd files without \\description:"
+msgid "Rd files without %s:"
 msgstr "다음은 중복된 에일리어스 '%s'를 가진 Rd 파일들입니다:"
 
 msgid "no Rd sections specified"
@@ -857,11 +862,16 @@ msgstr "체크할 패키지들이 없습니다"
 msgid "'reverse$repos' should be a subset of getOption(\"repos\")"
 msgstr ""
 
-msgid "downloading reverse dependencies ..."
+msgid "downloading reverse dependencies %s"
 msgstr ""
 
-msgid "downloading %s ..."
-msgstr "%s을 다운로드 하고 있습니다  ..."
+msgid "download of reverse dependency %s failed"
+msgstr ""
+
+msgid ""
+"download of %d reverse dependencies failed:\n"
+"  %s"
+msgstr ""
 
 msgid "checking %s ..."
 msgstr "%s를 확인합니다 ..."
@@ -976,13 +986,6 @@ msgstr ""
 msgid "restoration failed"
 msgstr "로딩에 실패했습니다"
 
-#, fuzzy
-msgid "invalid value"
-msgstr "패키지가 잘못되었습니다"
-
-msgid "for R_CROSS_BUILD"
-msgstr ""
-
 msgid "error reading file '%s'"
 msgstr "파일 '%s'를 읽는데 에러가 발생했습니다"
 
@@ -1087,6 +1090,9 @@ msgstr "에러: 디렉토리에 설치할 권한이 없습니다"
 msgid "building a fake installation is disallowed"
 msgstr ""
 
+msgid "specified C++"
+msgstr ""
+
 msgid "using C compiler:"
 msgstr ""
 
@@ -1107,6 +1113,10 @@ msgstr ""
 
 msgid "Reverted installation-time patch"
 msgstr ""
+
+#, fuzzy
+msgid "Input must be character"
+msgstr "'text'는 반드시 문자형 벡터이어야 합니다."
 
 msgid ""
 "See\n"
@@ -1194,6 +1204,13 @@ msgid ""
 "  %s\n"
 "contains no \\item."
 msgstr ""
+
+msgid "There is no binary type for this build of R."
+msgstr ""
+
+#, fuzzy
+msgid "invalid 'type'"
+msgstr "패키지가 잘못되었습니다"
 
 msgid "Processing packages:"
 msgstr "다음의 패키지들을 프로세싱하고 있습니다:"
@@ -1285,9 +1302,6 @@ msgstr "'%s'에 'texi2dvi'를 실행하는데 실패했습니다"
 
 msgid "Running vignettes for package %s"
 msgstr "패키지 %s에 대한 비니에트를 실행중입니다"
-
-msgid "Comparing %s to %s ..."
-msgstr "%s를 %s에 비교중입니다 ..."
 
 msgid "no parsed files found"
 msgstr ""
@@ -1428,6 +1442,11 @@ msgstr "ASCII가 아닌 데이터에 대한 인코딩을 알 수 없으므로 AS
 msgid "cannot source package code:"
 msgstr "패키지 코드를 읽어들일 수 없습니다:"
 
+msgid ""
+"error in inferior call:\n"
+"  %s"
+msgstr ""
+
 msgid "inferiorCallError"
 msgstr ""
 
@@ -1486,7 +1505,8 @@ msgid "Found a .Internal call in the following function:"
 msgid_plural "Found .Internal calls in the following functions:"
 msgstr[0] "다음의 함수로부터 .Internal 호출을 찾았습니다:"
 
-msgid "Found a.Internal call in methods for the following S4 generic:"
+#, fuzzy
+msgid "Found a .Internal call in methods for the following S4 generic:"
 msgid_plural "Found .Internal calls in methods for the following S4 generics:"
 msgstr[0] "다음의 S4 제네릭에 대하여 메소드로부터 .Internal 호출을 찾았습니다:"
 
@@ -1566,6 +1586,20 @@ msgstr[0] ""
 msgid "Corresponding BibTeX entry:"
 msgid_plural "Corresponding BibTeX entries:"
 msgstr[0] ""
+
+#, fuzzy
+#~ msgid "Rd files without \\description:"
+#~ msgstr "다음은 중복된 에일리어스 '%s'를 가진 Rd 파일들입니다:"
+
+#~ msgid "downloading %s ..."
+#~ msgstr "%s을 다운로드 하고 있습니다  ..."
+
+#, fuzzy
+#~ msgid "invalid value"
+#~ msgstr "패키지가 잘못되었습니다"
+
+#~ msgid "Comparing %s to %s ..."
+#~ msgstr "%s를 %s에 비교중입니다 ..."
 
 #, fuzzy
 #~ msgid "one of 'package' and 'dir' must be specified."

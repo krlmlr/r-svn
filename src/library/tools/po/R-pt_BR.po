@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 4.4.0\n"
 "Report-Msgid-Bugs-To: bugs.r-project.org\n"
-"POT-Creation-Date: 2024-10-25 14:49\n"
+"POT-Creation-Date: 2026-03-07 12:17\n"
 "PO-Revision-Date: 2023-09-01 11:37+0000\n"
 "Last-Translator: Caio Lente <lente@ime.usp.br>\n"
 "Language-Team: http://www.feferraz.net/br/P/Projeto_Traducao_R_Portugues\n"
@@ -274,6 +274,14 @@ msgstr "Campo Authors@R fornece pessoas com identificadores ORCID inválidos:"
 msgid "Authors@R field gives persons with duplicated ORCID identifiers:"
 msgstr "Campo Authors@R fornece pessoas com identificadores ORCID inválidos:"
 
+#, fuzzy
+msgid "Authors@R field gives persons with invalid ROR identifiers:"
+msgstr "Campo Authors@R fornece pessoas com identificadores ORCID inválidos:"
+
+#, fuzzy
+msgid "Authors@R field gives persons with duplicated ROR identifiers:"
+msgstr "Campo Authors@R fornece pessoas com identificadores ORCID inválidos:"
+
 msgid "Encoding '%s' is not portable"
 msgstr "Codificação '%s' não é portável"
 
@@ -311,9 +319,6 @@ msgstr ""
 msgid "License stub records with missing/empty fields:"
 msgstr "não é possível lidar com objetos Rd que tenham nomes ausentes/vazios"
 
-msgid "Uses ACM license: only appropriate for pre-2013 ACM TOMS code"
-msgstr ""
-
 msgid "Non-portable flags in variable '%s':"
 msgstr "Flags não portáveis na variável '%s':"
 
@@ -327,11 +332,11 @@ msgid "invalid 'OS.type' \"%s\".  Should not happen"
 msgstr "'OS.type' \"%s\" inválido.  Não deveria acontecer"
 
 #, fuzzy
-msgid "Missing link or links in Rd file '%s':"
+msgid "Missing link(s) in Rd file '%s':"
 msgstr "Link(s) ausente(s) no objeto de documentação '%s':"
 
 #, fuzzy
-msgid "Non-file package-anchored link(s) in Rd file '%s':"
+msgid "Non-topic package-anchored link(s) in Rd file '%s':"
 msgstr "Flags não portáveis no arquivo '%s':"
 
 msgid "See section 'Cross-references' in the 'Writing R Extensions' manual."
@@ -495,7 +500,7 @@ msgid "Auto-generated content requiring editing in Rd file '%s':"
 msgstr "Conteúdo autogerado que requer edição no objeto Rd '%s':"
 
 #, fuzzy
-msgid "Rd files without \\description:"
+msgid "Rd files without %s:"
 msgstr "Arquivos Rd com alias '%s' duplicado:"
 
 msgid "no Rd sections specified"
@@ -850,11 +855,19 @@ msgstr "nenhum pacote para verificar"
 msgid "'reverse$repos' should be a subset of getOption(\"repos\")"
 msgstr "'reverse$repos' deveria ser um subconjunto de getOption(\"repos\")"
 
-msgid "downloading reverse dependencies ..."
+#, fuzzy
+msgid "downloading reverse dependencies %s"
 msgstr "baixando dependências reversas ..."
 
-msgid "downloading %s ..."
-msgstr "baixando %s ..."
+#, fuzzy
+msgid "download of reverse dependency %s failed"
+msgstr "baixando dependências reversas ..."
+
+#, fuzzy
+msgid ""
+"download of %d reverse dependencies failed:\n"
+"  %s"
+msgstr "baixando dependências reversas ..."
 
 msgid "checking %s ..."
 msgstr "verificando %s ..."
@@ -968,12 +981,6 @@ msgstr "status de saída .install_packages()"
 msgid "restoration failed"
 msgstr "falha na restauração"
 
-msgid "invalid value"
-msgstr "valor inválido"
-
-msgid "for R_CROSS_BUILD"
-msgstr "para R_CROSS_BUILD"
-
 msgid "error reading file '%s'"
 msgstr "erro na leitura do arquivo '%s'"
 
@@ -1079,6 +1086,9 @@ msgstr "ERRO: sem permissão para instalar no diretório"
 msgid "building a fake installation is disallowed"
 msgstr "compilar uma instalação falsa não é permitido"
 
+msgid "specified C++"
+msgstr ""
+
 msgid "using C compiler:"
 msgstr ""
 
@@ -1099,6 +1109,10 @@ msgstr ""
 
 msgid "Reverted installation-time patch"
 msgstr ""
+
+#, fuzzy
+msgid "Input must be character"
+msgstr "'text' deve ser um vetor de caracteres"
 
 msgid ""
 "See\n"
@@ -1207,6 +1221,13 @@ msgstr ""
 "  %s\n"
 "não contém nenhum \\item."
 
+msgid "There is no binary type for this build of R."
+msgstr ""
+
+#, fuzzy
+msgid "invalid 'type'"
+msgstr "pacote inválido"
+
 msgid "Processing packages:"
 msgstr "Processando pacotes:"
 
@@ -1298,9 +1319,6 @@ msgstr "execução de 'texi2dvi' em '%s' falhou"
 
 msgid "Running vignettes for package %s"
 msgstr "Executando vignettes do pacote %s"
-
-msgid "Comparing %s to %s ..."
-msgstr "Comparando %s com %s ..."
 
 msgid "no parsed files found"
 msgstr "nenhum arquivo analisado foi encontrado"
@@ -1445,6 +1463,11 @@ msgstr "Codificação desconhecida com dados não ASCII: convertendo para ASCII"
 msgid "cannot source package code:"
 msgstr "não é possível carregar código do pacote:"
 
+msgid ""
+"error in inferior call:\n"
+"  %s"
+msgstr ""
+
 msgid "inferiorCallError"
 msgstr ""
 
@@ -1512,7 +1535,8 @@ msgid_plural "Found .Internal calls in the following functions:"
 msgstr[0] "Uma chamada .Internal foi encontrada na seguinte função:"
 msgstr[1] "Chamadas .Internal foram encontradas nas seguintes funções:"
 
-msgid "Found a.Internal call in methods for the following S4 generic:"
+#, fuzzy
+msgid "Found a .Internal call in methods for the following S4 generic:"
 msgid_plural "Found .Internal calls in methods for the following S4 generics:"
 msgstr[0] "Uma chamada .Internal foi encontrada nos métodos da seguinte genérica S4:"
 msgstr[1] "Chamadas .Internal foram encontradas nos métodos das seguintes genéricas S4:"
@@ -1615,6 +1639,22 @@ msgid "Corresponding BibTeX entry:"
 msgid_plural "Corresponding BibTeX entries:"
 msgstr[0] "Registro BibTeX correspondente:"
 msgstr[1] "Registros BibTeX correspondentes:"
+
+#, fuzzy
+#~ msgid "Rd files without \\description:"
+#~ msgstr "Arquivos Rd com alias '%s' duplicado:"
+
+#~ msgid "downloading %s ..."
+#~ msgstr "baixando %s ..."
+
+#~ msgid "invalid value"
+#~ msgstr "valor inválido"
+
+#~ msgid "for R_CROSS_BUILD"
+#~ msgstr "para R_CROSS_BUILD"
+
+#~ msgid "Comparing %s to %s ..."
+#~ msgstr "Comparando %s com %s ..."
 
 #, fuzzy
 #~ msgid "one of 'package' and 'dir' must be specified."

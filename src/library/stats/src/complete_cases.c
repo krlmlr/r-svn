@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1997-2023   The R Core Team
+ *  Copyright (C) 1997-2025   The R Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -23,6 +23,7 @@
 #endif
 
 #include <Defn.h>
+
 #include "statsErr.h"
 
 #define R_MSG_type	_("invalid 'type' (%s) of argument")
