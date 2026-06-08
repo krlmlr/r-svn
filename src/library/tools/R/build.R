@@ -1248,6 +1248,36 @@ inRbuildignore <- function(files, pkgdir) {
 	    writeDefaultNamespace(namespace)
 	}
 
+        ## Re-apply .Rbuildignore exclusions (PR#17549).
+        ## inRbuildignore() is applied before copying the package to the
+        ## temporary build directory, but build steps run there afterwards --
+        ## notably cleanup_pkg()'s 'make' and vignette rebuilding -- can
+        ## regenerate ignored files (e.g. an empty makefile fragment pulled in
+        ## via 'include').  Drop them again so they do not leak into the tarball
+        ## and trigger spurious R CMD check warnings.  Read .Rbuildignore from
+        ## the original 'pkgdir': it is itself excluded from the copy.
+        local({
+            owd2 <- setwd(pkgname); on.exit(setwd(owd2))
+            regen <- dir(".", all.files = TRUE, recursive = TRUE,
+                         include.dirs = TRUE)
+            drop <- inRbuildignore(regen, pkgdir)
+            isdir <- dir.exists(regen)
+            ## also drop 'src.../.deps' directories, as in the initial copy
+            drop <- drop | (isdir & grepl("^src.*/[.]deps$", regen))
+            ## drop the contents of excluded directories, too
+            for (d in regen[isdir & drop])
+                drop <- drop | startsWith(regen, paste0(d, "/"))
+            drop <- drop & file.exists(regen)
+            if (any(drop)) {
+                files <- regen[drop & !isdir]
+                if (length(files))
+                    messageLog(Log,
+                               "removing regenerated ignored file(s): ",
+                               paste(files, collapse = ", "))
+                unlink(regen[drop], recursive = TRUE)
+            }
+        })
+
         ## NB: the order *is* important! MD5 must be last, because old
         ## versions of R only check MD5 and so they don't exclude SHA256
         ## from hash comparison, thus the order must be:
