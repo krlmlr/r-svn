@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 4.2.0\n"
 "Report-Msgid-Bugs-To: bugs.r-project.org\n"
-"POT-Creation-Date: 2026-03-07 12:17\n"
+"POT-Creation-Date: 2026-06-09 14:51\n"
 "PO-Revision-Date: 2021-11-06 22:40+0100\n"
 "Last-Translator: Wei-Lun Chao <bluebat@member.fsf.org>\n"
 "Language-Team: Chinese (traditional) <zh-l10n@linux.org.tw>\n"
@@ -694,9 +694,6 @@ msgstr "找不到 '%s' 這個檔案"
 msgid "vignette filename '%s' does not match any of the '%s' filename patterns"
 msgstr "簡介檔名 '%s' 不符合任何 '%s' 檔案胚騰"
 
-msgid "+-+"
-msgstr ""
-
 msgid "In '%s' vignettes '%s' and '%s' have the same vignette name"
 msgstr "'%s' 簡介裡 '%s' 和 '%s' 的名稱是一樣的"
 
@@ -830,9 +827,6 @@ msgstr "以 --no-build-vignettes 執行 R 命令組建以避免重新組建。"
 
 msgid "invalid value for '--compact-vignettes', assuming %s"
 msgstr "--compact-vignettes 的值不對，假定用 %s"
-
-msgid "Error: cannot rename directory to %s"
-msgstr "錯誤：無法變更目錄名稱到時 %s"
 
 msgid "elapsed-time limit of %g %s reached for sub-process"
 msgstr "%g %s 達到了子行程的經過時間限制"
@@ -990,15 +984,21 @@ msgstr "無法從檔案 '%s' 中讀取索引資訊"
 msgid ".install_packages() exit status"
 msgstr ".install_packages() 離開狀態"
 
-#, fuzzy
-msgid "restoration failed"
-msgstr "載入失敗"
-
 msgid "error reading file '%s'"
 msgstr "讀取檔案 '%s' 時發生錯誤"
 
 msgid "this seems to be a bundle -- and they are defunct"
 msgstr "這看起來好像是梱綁軟體 -- 已經不存在了"
+
+#, fuzzy
+msgid "package %s successfully unpacked and %s sums checked"
+msgstr "成功將 %s 程式套件解開並 MD5 和檢查"
+
+msgid "package %s signature verified (%s %s)"
+msgstr ""
+
+msgid "Valid signature is required, but package %s could not be successfully verified."
+msgstr ""
 
 msgid "'cleanup' exists but is not executable -- see the 'R Installation and Administration Manual'"
 msgstr "有 'cleanup' 但它不是可執行檔 -- 請參考 'R 安裝和管理手冊 '"
@@ -1009,23 +1009,8 @@ msgstr "產生除錯符號(%s)"
 msgid "no DLL was created"
 msgstr "無法產生 DLL 檔案"
 
-msgid "NOTE: fixed path"
-msgstr ""
-
-msgid "NOTE: fixed library identification name"
-msgstr ""
-
-msgid "NOTE: fixed library path"
-msgstr ""
-
-msgid "NOTE: fixed rpath"
-msgstr ""
-
 msgid "WARNING: shared objects/dynamic libraries with hard-coded temporary installation paths"
 msgstr ""
-
-msgid "package %s successfully unpacked and MD5 sums checked"
-msgstr "成功將 %s 程式套件解開並 MD5 和檢查"
 
 msgid "not using staged install with --libs-only"
 msgstr ""
@@ -1033,31 +1018,8 @@ msgstr ""
 msgid "staged installation is only possible with locking"
 msgstr ""
 
-msgid "WARNING: installation-time patches will not be applied, could not get the patches index"
-msgstr ""
-
 msgid "patch utility is needed for installation-time patching"
 msgstr ""
-
-msgid "NOTE: Skipping installation-time patch"
-msgstr ""
-
-#, fuzzy
-msgid "which seems to be already applied."
-msgstr "這看起來好像是梱綁軟體 -- 已經不存在了"
-
-msgid "WARNING: failed to apply patch"
-msgstr ""
-
-msgid "Applied installation-time patch"
-msgstr ""
-
-msgid "and saved it as"
-msgstr ""
-
-#, fuzzy
-msgid "in package installation"
-msgstr "套件版面設置無效"
 
 msgid "R include directory is empty -- perhaps need to install R-devel.rpm or similar"
 msgstr "R 包含目錄是空的 -- 也許您需要安裝 R-devel.rpm 或類似的程式套件"
@@ -1097,30 +1059,6 @@ msgstr "錯誤：沒有在這個目錄裡安裝的許可"
 
 msgid "building a fake installation is disallowed"
 msgstr "不充許偽造安裝"
-
-msgid "specified C++"
-msgstr ""
-
-msgid "using C compiler:"
-msgstr ""
-
-msgid "using Fortran compiler:"
-msgstr ""
-
-msgid "using C++ compiler:"
-msgstr ""
-
-msgid "using C++"
-msgstr ""
-
-msgid "using SDK:"
-msgstr ""
-
-msgid "WARNING: failed to revert patch"
-msgstr ""
-
-msgid "Reverted installation-time patch"
-msgstr ""
 
 #, fuzzy
 msgid "Input must be character"
@@ -1274,6 +1212,30 @@ msgstr "'x' 必須是單字串"
 msgid "invalid hex string"
 msgstr ""
 
+#, fuzzy
+msgid "'gpg' is not available for signing"
+msgstr "不存在 '%s' 這個測試"
+
+msgid "Target file for the signature already exists"
+msgstr ""
+
+#, fuzzy
+msgid "'%s' must be a character string"
+msgstr "'x' 必須是單字串"
+
+msgid "'keyring' must be specified if 'use.default.keyring=FALSE'"
+msgstr ""
+
+msgid "Failed to invoke 'gpg' for signing"
+msgstr ""
+
+msgid "Cannot sign due to failed pin entry for key %s"
+msgstr ""
+
+#, fuzzy
+msgid "Signing failed:"
+msgstr "載入失敗"
+
 msgid "this requires 'objdump.exe' to be on the PATH"
 msgstr "這需要 'objdump.exe' 位於 PATH 中"
 
@@ -1417,10 +1379,6 @@ msgstr ""
 
 msgid "update_PACKAGES complete."
 msgstr ""
-
-#, fuzzy
-msgid "'%s' must be a character string"
-msgstr "'x' 必須是單字串"
 
 msgid "test '%s' is not available"
 msgstr "不存在 '%s' 這個測試"
@@ -1620,6 +1578,9 @@ msgstr[0] "%d 項套件測試失敗"
 msgid "Corresponding BibTeX entry:"
 msgid_plural "Corresponding BibTeX entries:"
 msgstr[0] "相關的 BibTeX 條目："
+
+#~ msgid "Error: cannot rename directory to %s"
+#~ msgstr "錯誤：無法變更目錄名稱到時 %s"
 
 #, fuzzy
 #~ msgid "Rd files without \\description:"

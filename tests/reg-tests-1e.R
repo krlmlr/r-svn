@@ -974,6 +974,7 @@ stopifnot(exprs = {
 ## the first produced "(averigü{é} 2023)" in R < 4.4.0
 stopifnot(roundtrip(r"(\item text)"))
 ## space was lost in R < 4.4.0
+proc.time() - .pt; .pt <- proc.time()
 
 
 ## PR#18618: match()  incorrect  with POSIXct || POSIXlt || fractional sec
@@ -1998,6 +1999,7 @@ stopifnot(exprs = {
     tt2N$estimate == c(Inf, -Inf)
 })
 ## The t.test() calls errored all in R <= 4.5.1
+proc.time() - .pt; .pt <- proc.time()
 
 
 ## long standing "FIXME" fixed:
@@ -2618,6 +2620,7 @@ strXs2. <- capture.output(str(xs2))
 stopifnot(identical(strX2 , strX2. ), noListof(strX2. ),
           identical(strXs2, strXs2.), noListof(strXs2.))
 ## strXs?2. did have 'List of' in R <= 4.5.z
+proc.time() - .pt; .pt <- proc.time()
 
 
 ## simple test for R_GetBindingType
@@ -3118,6 +3121,7 @@ local({
     f <- function(...) local({ "..." <- 1; ...names() })
     stopifnot(identical(f(a = 1, b = 2), c("a", "b")))
 })
+proc.time() - .pt; .pt <- proc.time()
 
 
 ## checking isa() consistency, notably S3 vs S4
@@ -3156,10 +3160,11 @@ stopifnot(isErr)
 stopifnot(identical(tryCatch(matrix(1:6, nrow = 2)[3, 1],
                              error = identity)$subscript,
                     1L))
+proc.time() - .pt
 
 
 ## Check that headers, WRE, and non-API variables are in sync
-tools:::checkAPI()
+tools:::checkAPI() |> system.time() ; .pt <- proc.time()
 ## New functionality, takes a few secs
 
 
@@ -3221,6 +3226,7 @@ stopifnot(identical(3:2, dim(dftN)),
 assertErrV( all(quote(symbool)) )
 assertErrV( any(quote(symbool)) )
 ## gave warnings but then TRUE or FALSE in R <= 4.6.0
+proc.time() - .pt; .pt <- proc.time()
 
 
 ## Platform dependently, stl(.) could severely misbehave when compiled by flang 22, -O2
@@ -3266,6 +3272,411 @@ stopifnot(exprs = {
 ## PR#19072
 stopifnot(identical(attributes(.leap.seconds), list(class = c("POSIXct", "POSIXt"))))
 ## .leap.seconds have no "tzone" attribute (as in R < 4.1.0)
+
+
+## zapsmall(x, digits = Inf)  should return x even when that contains +/-Inf
+zapEx <- function(x) rbind(x = x,
+          z    = zapsmall(x, 50),             zd_4 = zapsmall(x, 50, min.d = -444),
+          zdI  = zapsmall(x, 50, min.d = -Inf), zI = zapsmall(x, Inf),
+          zIdI = zapsmall(x, Inf,min.d = -Inf))
+x2 <- pi * 100^(-2:2)/10; xI <- c(x2, Inf); Ix <- c(-Inf, x2); xII <- c(Ix, Inf)
+stopifnot(exprs = {
+    zapEx(x2) == rep(x2, each = 6)
+    is.finite(t(print(zapEx(xI)))) == is.finite(xI)
+    is.finite(t(      zapEx(Ix ))) == is.finite(Ix)
+    is.finite(t(z <-  zapEx(xII))) == is.finite(xII)
+    !anyNA(z)
+    identical(z["zI" , ], xII)
+    identical(z["zIdI",], xII)
+    identical(z["zd_4",], z["zdI",])
+})
+## the last two rows of z[,] were all NaN in R <= 4.6.0
+proc.time() - .pt; .pt <- proc.time()
+
+
+### wilcox.test(x, exact=FALSE, correct = k), k >= 1  had been missing '* dnorm(z)'
+##
+## all possible 'correct = *' settings { correct = 0  <===>  correct = TRUE } :
+corrs <- list(FALSE, TRUE, 1L, 2L, 3L)
+names(corrs) <- vapply(corrs, as.character, "")
+##
+##' Compute exact and asymptotic (_incl_ Edgeworth corrections) Wilcoxon test p-values
+##' (also to be used in further changes, incl  2-sample test)
+wilcoxAsymp <- function(x, y = NULL, xO = 100* max(abs(x)), yO = Inf,
+                      debug = getOption("verbose"), ...) {
+    P <- if(debug) print else identity
+    xo <- c(x, xO)
+    if(is.null(y) || !length(y)) { ##---------- 1-sample  : *_one_pval_asymp() ----------------------
+        ## 'X' := eXact
+        pv1X  <- P(wilcox.test(x , exact=TRUE, ...))$p.value
+        pv1Xo <- P(wilcox.test(xo, exact=TRUE, ...))$p.value
+        L1. <- lapply(corrs, function(cr) wilcox.test(x , exact=FALSE, correct = cr, ...))
+        L1o <- lapply(corrs, function(cr) wilcox.test(xo, exact=FALSE, correct = cr, ...))
+        list(pval    = c(vapply(L1., `[[`, 0.1, "p.value"), Xact = pv1X),
+             pvalOut = c(vapply(L1o, `[[`, 0.1, "p.value"), Xact = pv1Xo))
+    }
+    else { ##-------------- 2-sample  (x, y) : *_two_pval_asymp() ------------------------
+        yo <- c(y, yO)
+        pv2X  <- P(wilcox.test(x , y , exact=TRUE, ...))$p.value
+        pv2Xo <- P(wilcox.test(xo, yo, exact=TRUE, ...))$p.value
+        L2. <- lapply(corrs, function(cr) wilcox.test(x , y , exact=FALSE, correct = cr, ...))
+        L2o <- lapply(corrs, function(cr) wilcox.test(xo, yo, exact=FALSE, correct = cr, ...))
+        list(pval    = c(vapply(L2., `[[`, 0.1, "p.value"), Xact = pv2X ),
+             pvalOut = c(vapply(L2o, `[[`, 0.1, "p.value"), Xact = pv2Xo))
+    }
+} ## {wilcoxAsymp}
+## Simulated, rounded and shifted from  t_3 and t_4 :
+x20 <- c(-231, -150, -143, -101, -82,    -76, -56, -40, -29, -20,
+           15,   41,   45,   61,  69,     86,  98, 144, 163, 219)
+y20 <- c(-216, -146, -137, -125, -116,  -108, -35, -32, -31,   6,
+           65,   92,   95,   98,  102,   128, 130, 134, 178, 190) + 0.5
+## chosen to have no ties (correct=* is not used with ties):
+stopifnot(anyDuplicated(rank(abs(  x20     ))) == 0,
+          anyDuplicated(rank(abs(c(x20,y20)))) == 0)
+roundM <- function(x, dig = 4)
+    round(x, digits = max(1, dig + round( - log10(min(abs(x))))))
+mkM <- function(c1, c2, m) `dimnames<-`(cbind(c1,c2, deparse.level=0L), dimnames(m))
+Ax1 <- wilcoxAsymp(x20)
+(mA1 <- sapply(Ax1, roundM))
+trA1 <- mkM(c(0.9405, 0.9553, 0.9563, 0.9565, 0.9563, 0.9563),
+            c(0.6639, 0.6766, 0.6826, 0.6834, 0.6827, 0.6827), mA1)
+(dA1 <- t(t(A <- simplify2array(Ax1))[, -6] - A["Xact",]) |> signif(digits=3))
+trd1 <- mkM(c(-0.0158, -0.000987, -9.29e-06, 0.000127, 1.79e-06),
+            c(-0.0188, -0.0061,   -9.17e-05, 0.000658, 1.08e-05), dA1)
+Ay1 <- wilcoxAsymp(y20)
+sapply(Ay1, roundM)
+(dAy1 <- t(t(A <- simplify2array(Ay1))[, -6] - A["Xact",]) |> signif(digits=3))
+trdy1 <- mkM(c(-0.0196, -0.00566, -7.8e-05, 0.000666, 1.16e-5),
+             c(-0.0187, -0.00784, -2.0e-04, 0.000638, 1.32e-5), dAy1)
+Ay1P <- wilcoxAsymp(y20 + 66)
+sapply(Ay1P, roundM)
+(dAy1P <- t(t(A <- simplify2array(Ay1P))[, -6] - A["Xact",]) |> signif(digits=3))
+trd1P <- mkM(c(.00149, .00245, 2.64e-4, 2.04e-5, 3.86e-5),
+             c(.00161, .00215, 2.14e-4, 9.52e-5, 3.11e-5), dAy1P)
+##
+##--------------------- 2 samples -------------------------------------
+Axy <- wilcoxAsymp(x20, y20)
+sapply(Axy, roundM)
+(dAxy <- t(t(A <- simplify2array(Axy))[, -6] - A["Xact",]) |> signif(digits=3))
+trd2 <- mkM(c(-0.0132, -0.00357, -2.58e-5, 2.08e-4, 9.28e-6),
+            c(-0.0123, -0.00330, -2.20e-5, 1.86e-4, 7.79e-6), dAxy)
+Axy40 <- wilcoxAsymp(x20, y20 + 40)
+sapply(Axy40, roundM)
+(dAxy40 <- t(t(A <- simplify2array(Axy40))[, -6] - A["Xact",]) |> signif(digits=3))
+trd2.40 <- mkM(c(-0.00705, -0.00236, -6.97e-5, -4.01e-5, 10.0e-6),
+               c(-0.00745, -0.00265, -6.86e-5, -1.05e-5, 9.18e-6), dAxy40)
+Axy2c <- wilcoxAsymp(x20, y20 + 200)
+sapply(Axy2c, roundM)
+(dAxy2c <- t(t(A <- simplify2array(Axy2c))[, -6] - A["Xact",]) |> signif(digits=3))
+trd2.2c <- mkM(c(1.36e-5, 1.46e-5, -3.45e-6, -2.47e-6, -1.22e-7),
+               c(3.83e-5, 4.16e-5, -8.54e-6, -2.70e-6, -6.56e-7), dAxy2c)
+Axy2m <- wilcoxAsymp(x20, y20 + 2000)
+sapply(Axy2m, roundM)
+(dAxy2m <- t(t(A <- simplify2array(Axy2m))[, -6] - A["Xact",]) |> signif(digits=3))
+trd2.2m <- mkM(c(6.3e-8, 6.79e-8, -1.45e-11, -1.45e-11, 7.31e-8),
+               c(4.46e-7, 4.77e-7, -1.01e-08, -1.01e-08, 1.43e-7), dAxy2m)
+##
+stopifnot(exprs = { # on x86_64 F42 Linux, all `tolerance = *` could be 0
+    all.equal(trA1,  mA1, tolerance = 1e-14)
+    all.equal(trd1,  dA1, tolerance = 1e-14)
+    all.equal(trdy1,dAy1, tolerance = 1e-14)
+    all.equal(trd1P,dAy1P,tolerance = 1e-14)
+    ## --- 2 ---
+    all.equal(trd2,    dAxy,   tolerance = 1e-14)
+    all.equal(trd2.40, dAxy40, tolerance = 1e-14)
+    all.equal(trd2.2c, dAxy2c, tolerance = 1e-14)
+    all.equal(trd2.2m, dAxy2m, tolerance = 1e-14)
+})
+## The 'correct = 1 | 2 | 3' did *not* improve the p values in R 4.6.0
+
+
+## wilcox.test(*, digits.rank) -- changed default *AND* new digits.zap = digits.rank
+x3 <- c(1.1, 2, 1.15)
+wtL <- list({}
+, wt.00      = wilcox.test(c(x3, 0))
+, wt.e100dII = wilcox.test(c(x3,  1e-100), digits.rank=Inf)
+, wte_100dII = wilcox.test(c(x3, -1e-100), digits.rank=Inf)
+, wt.e100dI  = wilcox.test(c(x3,  1e-100), digits.rank=Inf, digits.zap = 12)
+, wte_100dI  = wilcox.test(c(x3, -1e-100), digits.rank=Inf, digits.zap = 12)
+, wt.e100d7  = wilcox.test(c(x3,  1e-100), digits.rank= 7L)
+, wte_100d7  = wilcox.test(c(x3, -1e-100), digits.rank= 7L)
+)
+P <- if(interactive()) print else identity
+(pval <- vapply(P(wtL[!sapply(wtL, is.null)]), \(wt) wt$p.value, numeric(1)))
+noData <- \(x) x[names(x) != "data.name"]
+stopifnot(exprs = {
+    all.equal(unname(pval), c(.25, 0.125, rep(.25, 5)))
+    with(wtL, all.equal(noData(wt.00),
+                        noData(wt.e100dI)))
+})
+## the p-values were  rep((1:2)/8, 3)  in previous R, the first two indeed back compatible.
+proc.time() - .pt; .pt <- proc.time()
+
+
+## Bug 19029 - Overly-long dlerror() may corrupt dyn.load() state
+{ try(dyn.load(strrep("A", 1000))); try(library(cluster)) -> ans }
+## seg.faulted typically  (when 'cluster' was found)
+if(!inherits(ans, "try-error")) detach("package:cluster", unload = TRUE)
+
+
+## Bug 19086 -- Compiler optimization related  -- nlminb() convergence when bounds are active
+f <- function(x) sum( log(diff(x)^2+.01) + (x[1]-1)^2 )
+p.s <- c(5:10,2*(6:11)); names(p.s) <- paste0("p=", p.s)
+optL <- lapply(p.s, function(p) nlminb(rep(0, p), f, lower=-1, upper=3))
+unique(cbind(msgs <- sapply(optL, `[[`, "message")))
+## indeed still in Fedora 42; R-4.6.0 self-compiled
+## in good case:
+stopifnot(grepl("^relative convergence ", msgs))
+sapply(optL, `[[`, "iterations") # platform dep.
+## p=5  p=6  p=7  p=8  p=9 p=10 p=11 p=12       p=22
+##  28   47   47   55   51   65   77   80  ....  148
+sapply(optL, `[[`, "evaluations") # probably platform dep.
+## Test estimated par and objective function:
+head(obj <- sapply(optL, `[[`, "objective"))
+str(parL <- lapply(optL, `[[`, "par"))
+truepL <- lapply(p.s, function(p) rep.int(1, p)) # true par. = (1 1 .. 1)
+writeLines(all.equal(parL, truepL, tolerance = 0))
+stopifnot(exprs = {
+    abs((obj / (p.s - 1)) - log(0.01)) < 1e-9
+    all.equal(parL, truepL, tolerance = 4e-5) # p=20, 1.5656e-5 (Windows - arm)
+})
+## for p >= 9 did not converge previously (in R <= 4.6.0)
+
+## Bug 18930 -- Merge with zero rows df and single column df
+a <- data.frame(x=numeric())
+b <- data.frame(y=1:2)
+
+ab <- merge(a, b, all.x = TRUE, all.y = TRUE)
+stopifnot(identical(names(ab), c(names(a), names(b))))
+## previously merge dropped column names (in R <= 4.6.0)
+
+k <- data.frame(x=numeric(), y=numeric())
+m <-  data.frame(z=1:2)
+
+km <- merge(k, m, all.x = TRUE, all.y = TRUE)
+stopifnot(identical(names(km), c(names(k), names(m))))
+## previously `y[FALSE, ]` instead of `z` (in R <= 4.6.0)
+
+
+## read.dcf() and write.dcf() always use UTF-8 (r-dev-day issue 156)
+local({
+    eacute <- intToUtf8(0xe9) # small e with acute, UTF-8
+    ccedil <- intToUtf8(0xe7) # small c with cedilla, UTF-8
+    ## The shared base:::.enc2utf8_sub() helper used by read/write.dcf():
+    ## convert to UTF-8 honouring the declared encoding, escape invalid
+    ## bytes, and pass non-character input through unchanged.
+    lat <- "Fran\xe7ois"; Encoding(lat) <- "latin1"
+    ## A string declared UTF-8 but containing a stray invalid byte: must be
+    ## escaped regardless of the native encoding (an undeclared literal would
+    ## be reinterpreted via the locale codepage on non-UTF-8 platforms).
+    inv <- "a\xffb"; Encoding(inv) <- "UTF-8"
+    stopifnot(
+        identical(.enc2utf8_sub("abc"), "abc"),
+        .enc2utf8_sub(lat) == paste0("Fran", ccedil, "ois"),
+        Encoding(.enc2utf8_sub(lat)) == "UTF-8",
+        .enc2utf8_sub(inv) == "a<ff>b",
+        identical(.enc2utf8_sub(c("a", NA)), c("a", NA)),
+        identical(.enc2utf8_sub(1:3), 1:3)
+    )
+    ## A DCF file with a valid UTF-8 field and a field with an invalid byte.
+    tf <- tempfile()
+    con <- file(tf, "wb")
+    writeBin(charToRaw("Package: testpkg\nTitle: caf\xc3\xa9\nAuthor: Fran\xffois\n"),
+             con)
+    close(con)
+    ## Both the C path (all = FALSE) and the R path (all = TRUE) must agree:
+    ## valid UTF-8 is marked as such, invalid bytes are escaped as <xx>.
+    dC <- read.dcf(tf)
+    dR <- read.dcf(tf, all = TRUE)
+    stopifnot(
+        dC[1, "Title"] == paste0("caf", eacute),
+        Encoding(dC[1, "Title"]) == "UTF-8",
+        dC[1, "Author"] == "Fran<ff>ois",
+        identical(unname(dC[1, "Title"]),  dR$Title),
+        identical(unname(dC[1, "Author"]), dR$Author)
+    )
+    ## write.dcf() converts a declared encoding to UTF-8 and escapes any
+    ## invalid bytes; the output must be valid UTF-8.
+    x <- data.frame(Package = "testpkg",
+                    Author  = "Fran\xe7ois",
+                    Note    = "bad\xffbyte",
+                    stringsAsFactors = FALSE)
+    Encoding(x$Author) <- "latin1"
+    Encoding(x$Note)   <- "UTF-8"   # stray invalid byte, must be escaped
+    tf2 <- tempfile()
+    write.dcf(x, tf2)            # always UTF-8, regardless of locale
+    stopifnot(validUTF8(rawToChar(readBin(tf2, "raw", file.size(tf2)))))
+    y <- read.dcf(tf2)
+    stopifnot(
+        y[1, "Author"] == paste0("Fran", ccedil, "ois"),
+        Encoding(y[1, "Author"]) == "UTF-8",
+        y[1, "Note"] == "bad<ff>byte"
+    )
+    ## An invalid byte on a continuation line is escaped, while a valid
+    ## UTF-8 character on the same field is preserved.
+    tf3 <- tempfile()
+    con <- file(tf3, "wb")
+    writeBin(charToRaw("Package: p\nDescription: one \xff bad\n  caf\xc3\xa9 line\n"),
+             con)
+    close(con)
+    d3C <- read.dcf(tf3)
+    d3R <- read.dcf(tf3, all = TRUE)
+    stopifnot(
+        grepl("<ff>", d3C[1, "Description"], fixed = TRUE),
+        grepl(eacute, d3C[1, "Description"], fixed = TRUE),
+        Encoding(d3C[1, "Description"]) == "UTF-8",
+        identical(unname(d3C[1, "Description"]), d3R$Description)
+    )
+    ## Valid 3- and 4-byte characters are preserved; the various kinds of
+    ## invalid sequence (truncated, overlong, surrogate) are each escaped
+    ## per byte, and a literal "<ff>" is not re-escaped.  C and R agree.
+    euro  <- intToUtf8(0x20AC)   # 3-byte UTF-8
+    emoji <- intToUtf8(0x1F600)  # 4-byte UTF-8
+    rdb <- function(bytes) {
+        f <- tempfile(); cc <- file(f, "wb"); writeBin(as.raw(bytes), cc); close(cc)
+        on.exit(unlink(f))
+        list(C = read.dcf(f)[1, "X"], R = read.dcf(f, all = TRUE)$X)
+    }
+    cases <- list(
+        list(b = c(charToRaw("Package: p\nX: "), charToRaw(euro),
+                   charToRaw(emoji), charToRaw("\n")),    want = paste0(euro, emoji)),
+        list(b = c(charToRaw("Package: p\nX: a"), as.raw(0xc3),
+                   charToRaw("\n")),                       want = "a<c3>"),
+        list(b = c(charToRaw("Package: p\nX: "), as.raw(c(0xc0, 0x80)),
+                   charToRaw("\n")),                       want = "<c0><80>"),
+        list(b = c(charToRaw("Package: p\nX: "), as.raw(c(0xed, 0xa0, 0x80)),
+                   charToRaw("\n")),                       want = "<ed><a0><80>"),
+        list(b = charToRaw("Package: p\nX: a<ff>b\n"),     want = "a<ff>b")
+    )
+    for (cs in cases) {
+        got <- rdb(cs$b)
+        stopifnot(got$C == cs$want, identical(unname(got$C), got$R))
+    }
+    ## An invalid byte in a field name (tag) is escaped; C and R agree.
+    tf4 <- tempfile()
+    con <- file(tf4, "wb")
+    writeBin(c(charToRaw("Package: p\nX"), as.raw(0xff), charToRaw("Y: v\n")), con)
+    close(con)
+    stopifnot("X<ff>Y" %in% colnames(read.dcf(tf4)),
+              identical(colnames(read.dcf(tf4)), names(read.dcf(tf4, all = TRUE))))
+    ## A repeated field with an invalid byte: all = TRUE gives a list column.
+    con <- file(tf4, "wb")
+    writeBin(c(charToRaw("Package: p\nX: a\nX: "), as.raw(0xff), charToRaw("\n")), con)
+    close(con)
+    stopifnot(identical(unlist(read.dcf(tf4, all = TRUE)$X), c("a", "<ff>")))
+    ## A keep.white field uses the non-folding branch of write.dcf();
+    ## a latin1 value is still written as valid UTF-8.
+    v <- "Fran\xe7ois"; Encoding(v) <- "latin1"
+    write.dcf(data.frame(Package = "p", Maintainer = v, stringsAsFactors = FALSE),
+              tf4, keep.white = "Maintainer")
+    stopifnot(validUTF8(rawToChar(readBin(tf4, "raw", file.size(tf4)))),
+              read.dcf(tf4)[1, "Maintainer"] == paste0("Fran", ccedil, "ois"))
+    unlink(c(tf, tf2, tf3, tf4))
+})
+## read.dcf() previously returned values with encoding "unknown", and
+## write.dcf() relied on the Encoding field (in R <= 4.6.0)
+
+
+## seq.int(along.with = *) for non-vector objects (PR#19100)
+stopifnot(identical(seq.int(along.with = NULL), integer(0)),
+          identical(seq.int(along.with = mean), 1L))
+
+
+## .OBJSXP() and deparse(<bare OBJSXP>), e.g. of S7 objects,  RConsortium/S7#524 :
+exexpr <- quote(structure(.OBJSXP(), class = "S7_object", foo = 1:2))
+obj <- eval(exexpr)
+stopifnot(exprs = {
+    typeof(obj) == "object"
+    !isS4(obj)
+    identical(.OBJSXP(), asS3(getClass("S4")@prototype, complete = FALSE))
+    identical(attributes(obj), list(class = "S7_object", foo = 1:2))
+    identical(eval(parse(text = deparse(obj))[[1]]), obj)
+    identical(deparse(obj), format(exexpr))
+})
+## .OBJSXP() is new; in R <= 4.x, these deparse()d to the non-parseable "<object>".
+
+
+# Almost perfect fit in summary.aov() -- same warning as in summary.lm() - PR#18341
+chkFM <- function(mA, mL) {
+    print(smA <- getVaW(summary(mA)))
+    print(smL <- getVaW(summary(mL)))
+    stopifnot(exprs = {
+        identical(coef(mA), coef(mL))
+        !is.null(wA <- attr(smA, "warning"))
+        !is.null(wL <- attr(smL, "warning"))
+        !englishMsgs || grepl("essentially perfect fit", wA)
+        !englishMsgs || grepl("essentially perfect fit", wL)
+    })
+}
+## simple case:
+d30 <- data.frame(x = gl(2, 15), y = 1)
+fmL <- lm (y~x, data=d30)
+fmA <- aov(y~x, data=d30)
+chkFM(fmA, fmL)
+## ex. with 2 y's :
+d30 <- data.frame(group = gl(2, 15), weight = 1, height = 1)
+fmL <- lm (cbind(weight, height) ~ group, data = d30)
+fmA <- aov(cbind(weight, height) ~ group, data = d30)
+chkFM(fmA, fmL)
+## the *A models from aov() / summary.aov()  did not raise the warning in R <= 4.6.z
+##
+## A case where length(fitted) == 1 gave var(fitted) |-> NA
+ladyB <- data.frame(
+    ID = factor(1:16), Run = gl(2, 8),
+    DPlant = factor(rep((1:8)*10, 2)),
+    Host = factor(rep(rep(2:1, each=4), 2), labels = c("bean", "trefoil")),
+    Ladybird = factor(rep(rep(2:1, each=2), 4), labels = c("-", "+")),
+    Cadaver = rep(c(5, 10), 8),
+    Live     = c(15, 12, 20, 20, 18, 17, 20, 20, 18, 17, 20, 20, 15, 19, 20, 20),
+    Infected = c(1, 2, 1, 2, 5, 10, 1, 3, 2, 2, 0, 0, 5, 8, 1, 7))
+fm <- aov(log(P/(100 - P)) ~ Host * Cadaver * Ladybird + Error(Run/DPlant),
+          data = transform(ladyB, P = 100 * (Infected + 1)/(Live + 2), Cadaver = factor(Cadaver)))
+summary(fm)
+## a few days ==>  Error in  if (is.finite(resvar) && resvar < (mean(fitted)^2 + var(c(fitted))) * :
+##                                                    missing value where TRUE/FALSE needed
+
+
+## PR#19110 -- missing protect in SubassignTypeFix invocation
+setClass("A", representation(x = "numeric"))
+as.vector.A <- function(x, mode = "any") x@x + 1
+##
+f <- function(on) {
+    v <- TRUE ; v[1] <- new("A", x = 99) # S4 dispatch _before_ torture (<==> speed)
+    v <- TRUE
+    gctorture(on)
+    v[1] <- new("A", x = 99)
+    gctorture(FALSE)
+    v
+}
+stopifnot(identical(f(FALSE), 100),
+          identical(f(TRUE),  100)) # was '1' (silently)
+
+
+## PR#19109 -- `dim<-` dimension vector product can overflow
+x <- integer()
+er <- tryCid(dim(x) <- rep(2^16, 4))
+stopifnot(inherits(er, "error"))
+if(englishMsgs)
+    stopifnot(grepl("too many", conditionMessage(er)))
+## gave no error but an x of length zero; x[] <- .. would seg.fault
+t30 <- 2^30
+for(nd in c(2:4, 33:37)) { # 
+    d. <- c(rep(t30, nd), 0)
+    x <- integer();   dim(x) <- d.
+    y <- array(integer(), dim = d.)
+    stopifnot(identical(x, y), is.integer(d <- dim(x)), all.equal(d., d))
+}
+## above creation of x & y failed for a couple of hours in R-devel
+
+
+## PR#19116 -- <matrix>[[i, j]]: stochastic error with negative i
+m <- matrix(1:4, 2); mm <- m; mm[[-1, 1]] <- 99L; mm[, 1] # 1 99
+RR <- replicate(1000, {
+    invisible(lapply(1:200, function(i) c(2L, 2L)))   # churn the heap
+    as.character(m[[-1L, 1L]])
+})
+stopifnot(RR == "2", length(RR) == 1000L)
+## RR was '2' "randomly" in R <= 4.6.1
 
 
 

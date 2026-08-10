@@ -109,13 +109,13 @@ vhtmlify <- function(x, inEqn = FALSE) { # code version
     x <- fsub('"\\{"', '"{"', x)
     ## http://htmlhelp.com/reference/html40/entities/symbols.html
     if(inEqn) {
-        x <- psub("\\\\(Alpha|Beta|Gamma|Delta|Epsilon|Zeta|Eta|Theta|Iota|Kappa|Lambda|Mu|Nu|Xi|Omicron|Pi|Rho|Sigma|Tau|Upsilon|Phi|Chi|Psi|Omega|alpha|beta|gamma|delta|epsilon|zeta|eta|theta|iota|kappa|lambda|mu|nu|xi|omicron|pi|rho|sigma|tau|upsilon|phi|chi|psi|omega|sum|prod)", "&\\1;", x)
-        x <- psub("\\\\(dots|ldots)", "&hellip;", x)
-        x <- psub("\\\\leq?", "&le;", x)
-        x <- psub("\\\\geq?", "&ge;", x)
-        x <- psub("\\\\neq?", "&ne;", x)
-        x <- fsub("\\infty", "&infin;", x)
-        x <- fsub("\\sqrt", "&radic;", x)
+        rx <- paste0("\\\\(",
+                     paste(math_replacements[,"name"], collapse = "|"),
+                     ")(?![a-zA-Z])")
+        m <- gregexec(rx, x, perl = TRUE)
+        ii <- lapply(regmatches(x, m),
+                     function(mm) if (length(mm)) match(mm[2,], math_replacements[,"name"]))
+        regmatches(x, gregexpr(rx, x, perl = TRUE)) <- lapply(ii, function(i) math_replacements[i, "html"])
     }
     x
 }
@@ -598,7 +598,7 @@ Rd2HTML <-
 
     addParaBreaks <- function(x) {
 	if (isTRUE(inPara) && #isBlankLineRd(x)
-	    linestart && grepl("^[[:blank:]]*\n", x)) {
+	    linestart && grepl("^[[:space:]]*\n", x, perl = TRUE)) {
 	    inPara <<- FALSE
 	    return("</p>\n")
 	}
@@ -608,7 +608,7 @@ Rd2HTML <-
 	    ## strip blank line
 	    skipNewline <<- linestart # not necessarily for \Sexpr-based Rd
 	}
-	if (isFALSE(inPara) && !isBlankRd(x)) {
+	if (isFALSE(inPara) && !grepl("^[[:space:]]*$", x, perl = TRUE)) {
 	    x <- paste0("<p>", x)
 	    inPara <<- TRUE
 	}
@@ -1587,7 +1587,7 @@ function(descfile, dynamic = FALSE, hooks = list()) {
             }
     }
 
-    trfm <- .gsub_with_transformed_matches
+    trfm <- gsub_with_transformed_matches
 
     ## A variant of htmlify() which optionally adds hyperlinks and does
     ## not HTMLify dashes inside these.

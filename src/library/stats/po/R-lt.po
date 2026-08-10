@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: stats 4.1.0\n"
 "Report-Msgid-Bugs-To: bugs.r-project.org\n"
-"POT-Creation-Date: 2026-03-07 12:43\n"
+"POT-Creation-Date: 2026-06-08 13:06\n"
 "PO-Revision-Date: 2021-10-15 18:44+0200\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -926,6 +926,9 @@ msgstr "names(hybridPars) turi būti NULL arba būti identiški numatytiesiems"
 
 msgid "'hybrid' is ignored for a 2 x 2 table"
 msgstr "'hybrid' yra ignoruojamas 2 x 2 lentelei"
+
+msgid "'pval.only' and 'conf.int' may not both be true"
+msgstr ""
 
 msgid "all groups must contain data"
 msgstr "visose grupėse turi būti duomenys"
@@ -2657,6 +2660,10 @@ msgid_plural "'start.innov' is too short: need %d points"
 msgstr[0] "'start.innov' per trumpas: reikia %d taško"
 msgstr[1] "'start.innov' per trumpas: reikia %d taškus"
 msgstr[2] "'start.innov' per trumpas: reikia %d taškų"
+
+#, fuzzy
+#~ msgid "'%s' is not implemented yet"
+#~ msgstr "'%s' tipas neįdiegtas"
 
 #~ msgid "cannot compute exact confidence intervals with ties"
 #~ msgstr "negali tiksliai apskaičiuoti pasitikėjimo intervalą su ryšiais"

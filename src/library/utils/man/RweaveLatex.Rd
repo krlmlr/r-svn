@@ -214,10 +214,11 @@ RweaveLatexOptions(options)
     \item{split:}{logical (\code{FALSE}).  If \code{TRUE}, text output
       is written to separate files for each code chunk.}
 
-    \item{strip.white:}{character string (\code{"true"}).  If
-      \code{"true"}, blank lines at the beginning and end of output are
-      removed.  If \code{"all"}, then all blank lines are removed from
-      the output.  If \code{"false"} then blank lines are retained.
+    \item{strip.white:}{logical (\code{TRUE}) or character string
+      (\code{"true"}). If \code{TRUE} or \code{"true"}, blank lines at
+      the beginning and end of output are removed. If \code{"all"}, then
+      all blank lines are removed from the output. If \code{FALSE} or
+      \code{"false"}, then blank lines are retained.
 
       A \sQuote{blank line} is one that is empty or includes only
       whitespace (spaces and tabs).
@@ -260,15 +261,15 @@ RweaveLatexOptions(options)
 
     \item{png:}{logical (\code{FALSE}), indicating whether PNG figures
       should be generated.  Ignored if \code{fig = FALSE}.
-      Only available in \eqn{\R \ge 2.13.0}{R >= 2.13.0}.}
+      Only available in \R \eqn{\ge} 2.13.0.}
 
     \item{jpeg:}{logical (\code{FALSE}), indicating whether JPEG figures
       should be generated.  Ignored if \code{fig = FALSE}.
-      Only available in \eqn{\R \ge 2.13.0}{R >= 2.13.0}.}
+      Only available in \R \eqn{\ge} 2.13.0.}
 
     \item{grdevice:}{character (\code{NULL}): see section
       \sQuote{Custom Graphics Devices}.  Ignored if \code{fig = FALSE}.
-      Only available in \eqn{\R \ge 2.13.0}{R >= 2.13.0}.}
+      Only available in \R \eqn{\ge} 2.13.0.}
 
     \item{width:}{numeric (6), width of figures in inches.  See
       \sQuote{Details}.}

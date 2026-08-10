@@ -1225,7 +1225,7 @@ add_dummies <- function(dir, Log)
 
         if(!is.na(lang <- db["Language"])) {
             s <- unlist(strsplit(lang, ", *"), use.names = FALSE)
-            s <- s[!grepl(re_anchor(.make_RFC4646_langtag_regexp()), s)]
+            s <- s[!grepl(re_anchor(.make_RFC_4646_langtag_regexp()), s)]
             if(length(s)) {
                 if(!any) noteLog(Log)
                 any <- TRUE
@@ -2329,7 +2329,8 @@ add_dummies <- function(dir, Log)
         out1 <- if (length(out1) && length(out1a)) c(out1, "", out1a)
                 else c(out1, out1a)
 
-        out2 <- out3 <- out4 <- out5 <- out6 <- out7 <- out8 <- out9 <- out10 <- NULL
+        out2 <- out3 <- out4 <- out5 <- out6 <- out7 <- out8 <- out9 <-
+            out10 <- out11 <- NULL
 
         if (!is_base_pkg && R_check_unsafe_calls) {
             Rcmd <- paste(opWarn_string, "\n",
@@ -2369,7 +2370,7 @@ add_dummies <- function(dir, Log)
         }
 
         if(!is_base_pkg && R_check_use_codetools && R_check_dot_internal) {
-            details <- pkgname != "relax" # has .Internal in a 10,000 line fun
+            details <- TRUE
             Rcmd <- paste(opWarn_string, "\n",
                           if (do_install)
                               sprintf("tools:::.check_dotInternal(package = \"%s\",details=%s)\n", pkgname, details)
@@ -2428,13 +2429,18 @@ add_dummies <- function(dir, Log)
             out10 <- R_runR0(Rcmd, R_opts2, "R_DEFAULT_PACKAGES=NULL")
         }
 
+        Rcmd <- paste(opWarn_string, "\n",
+                      sprintf("tools:::.check_package_code_structure_specials(dir = \"%s\")\n",
+                              pkgdir))
+        out11 <- R_runR0(Rcmd, R_opts2, "R_DEFAULT_PACKAGES=NULL")
+
         t2 <- proc.time()
         print_time(t1, t2, Log)
 
         if (length(out1) || length(out2) || length(out3) ||
             length(out4) || length(out5) || length(out6) ||
             length(out7) || length(out8) || length(out9) ||
-            length(out10)) {
+            length(out10) || length(out11)) {
             ini <- character()
             if(length(out4) ||
                (length(out8) &&
@@ -2500,6 +2506,10 @@ add_dummies <- function(dir, Log)
             }
             if(length(out10)) {
                 printLog0(Log, paste(c(ini, out10, ""), collapse = "\n"))
+                ini <- ""
+            }
+            if(length(out11)) {
+                printLog0(Log, paste(c(ini, out11, ""), collapse = "\n"))
                 ini <- ""
             }
         } else resultLog(Log, "OK")
@@ -2748,7 +2758,19 @@ add_dummies <- function(dir, Log)
                     out <- R_runR2(Rcmd)
                     if (length(out)) {
                         any <- TRUE
-                        warningLog(Log)
+                        ## <FIXME>
+                        ## This is terrible.  For now we only want to
+                        ## give a NOTE when all we report is functions
+                        ## missing from usages, but we cannot easily
+                        ## tell this from the printed (and partially
+                        ## localized) results.
+                        ind <- (nzchar(out) &
+                                (out !=
+                                 "Exported functions without usage information:"))
+                        if(all(startsWith(out[ind], " ")))
+                            noteLog(Log)
+                        else
+                            warningLog(Log)
                         printLog0(Log, paste(c(out, ""), collapse = "\n"))
                     }
                 }
@@ -3096,7 +3118,7 @@ add_dummies <- function(dir, Log)
                 printLog0(Log, .format_lines_with_indent(out), "\n")
             } else resultLog(Log, "OK")
         }
-        
+
         if(!is_base_pkg &&
            (dir.exists("data") || file.exists("R/sysdata.rda")) &&
            length(bad <- .check_package_data_namespace_loads("."))) {
@@ -3412,7 +3434,7 @@ add_dummies <- function(dir, Log)
                 } else {
                     if (!any) noteLog(Log)
                     any <- TRUE
-                    printLog(Log, "Unable to find GhostScript executable to run checks on size reduction\n")
+                    printLog(Log, "Unable to find Ghostscript executable to run checks on size reduction\n")
                 }
 
             }
@@ -5468,8 +5490,16 @@ add_dummies <- function(dir, Log)
                 if(R_check_suppress_RandR_message)
                     out <- filtergrep('^Xlib: *extension "RANDR" missing on display',
                                       out, useBytes = TRUE)
-                warns <- grep("^Warning: file .* is not portable",
-                              out, value = TRUE, useBytes = TRUE)
+                bibwarnings <-
+                    unique(grepv("I didn't find a database entry for",
+                                 out, useBytes = TRUE))
+                warns <- c(
+                    grepv("^Warning: file .* is not portable",
+                          out, useBytes = TRUE),
+                    if (length(bibwarnings))
+                        paste(c("From the bibliography engine:", # BibTeX or biber
+                                bibwarnings), collapse = "\n  ")
+                )
                 ltx_err <- any(grepl("LaTeX error", out, ignore.case = TRUE,
                                      useBytes = TRUE))
                 iskip <- grep("^Note: skipping .* dependencies:", out,
@@ -5493,7 +5523,8 @@ add_dummies <- function(dir, Log)
                                           out, "", ""), collapse = "\n"))
                 } else if(nw <- length(warns)) {
                     any <- TRUE
-                    if(skip_run_maybe || !ran) warningLog(Log) else noteLog(Log)
+                    if(length(bibwarnings) && nw == 1L) noteLog(Log)
+                    else if(skip_run_maybe || !ran) warningLog(Log) else noteLog(Log)
                     msg <- ngettext(nw,
                                     "Warning in re-building vignettes:\n",
                                     "Warnings in re-building vignettes:\n",
@@ -5659,6 +5690,10 @@ add_dummies <- function(dir, Log)
         checkingLog(Log, "HTML version of manual")
         any <- FALSE
 
+        R_check_Rd_validate_Rd2HTML_refmans_only <-
+            config_val_to_logical(Sys.getenv("_R_CHECK_RD_VALIDATE_RD2HTML_REFMAN_ONLY_",
+                                             "TRUE"))
+
         t1 <- proc.time()
         if(i1) { ## validate
             Tidy <- .find_tidy_cmd()
@@ -5676,15 +5711,21 @@ add_dummies <- function(dir, Log)
                 ## creating the package HTML refmans via pkg2HTML(),
                 ## which may find additional problems (e.g., duplicated
                 ## anchors). Not sure whether we also want to validate
-                ## the Rd2HTML() outputs for the individual Rd files.
+                ## the Rd2HTML() outputs for the individual Rd files:
+                ## one can use
+                ##   _R_CHECK_RD_VALIDATE_RD2HTML_REFMAN_ONLY_=false
+                ## for force this.
                 results1a <-
-                    lapply(db,
-                           function(x)
-                               tryCatch({
-                                   Rd2HTML(x, out, concordance = TRUE)
-                                   tidy_validate(out, tidy = Tidy)
-                               },
-                               error = identity))
+                    if(R_check_Rd_validate_Rd2HTML_refmans_only)
+                        NULL
+                    else
+                        lapply(db,
+                               function(x)
+                                   tryCatch({
+                                       Rd2HTML(x, out, concordance = TRUE)
+                                       tidy_validate(out, tidy = Tidy)
+                                   },
+                                   error = identity))
                 results1b <-
                     tryCatch({
                         stages <- c("build", "later", "install",
@@ -5703,6 +5744,10 @@ add_dummies <- function(dir, Log)
                     },
                     error = identity)
                 results1 <- c(results1a, list(results1b))
+                paths1 <-
+                    c(if(!R_check_Rd_validate_Rd2HTML_refmans_only)
+                          names(db),
+                      paste0(basename(dir), ".html"))
 
                 ignore <-
                     Sys.getenv("_R_CHECK_RD_VALIDATE_RD2HTML_IGNORE_EMPTY_SPANS_",
@@ -5711,11 +5756,7 @@ add_dummies <- function(dir, Log)
                               "Warning: trimming empty <span>"
                           else
                               character()
-                results1 <- tidy_validate_db(results1,
-                                             c(names(db),
-                                               paste0(basename(dir),
-                                                      ".html")),
-                                             ignore)
+                results1 <- tidy_validate_db(results1, paths1, ignore)
             }
         }
 
@@ -6321,8 +6362,13 @@ add_dummies <- function(dir, Log)
                              ## selected re-defining of macros": clang
                              ": warning: .*(M_PI|INT_MIN|FCONE).* \\[-Wmacro-redefined\\]",
                              ## LLVM >= 18 clang++
-                             ": warning: .* \\[-Wdeprecated-literal-operator\\]"
-                             )
+                             ": warning: .* \\[-Wdeprecated-literal-operator\\]",
+                             ## C23 warnings on some setups of GCC and clang
+                             ## see slso -Wincompatible-pointer-types-discards-qualifiers above
+                             "\\[-Wdiscarded-qualifiers\\]",
+                             ## LLVM >= 23
+                             "\\[-Wunused-but-set-global\\]"
+                            )
                 ## macOS ld warnings
                 warn_re <- c(warn_re,
                              "^ld: warning: search path .* not found",
@@ -6470,7 +6516,9 @@ add_dummies <- function(dir, Log)
                 if (!config_val_to_logical(check_src_flag)) {
                     lines <- filtergrep("warning: unused", lines,
                                         ignore.case = TRUE, useBytes = TRUE)
-                    lines <- filtergrep("warning: .* set but not used", lines,
+                    ## maybe in future unused-but-set-variable
+                    ## to allow through unused-but-set-global
+                    lines <- filtergrep("\\[-Wunused-but-set", lines,
                                         ignore.case = TRUE, useBytes = TRUE)
                 }
                 ## (gfortran seems to use upper case.)
