@@ -1344,7 +1344,8 @@ The more comprehensive of the @R{} interface packages hide the type
 conversion issues from the user; modern @CRANpkg{DBI}-based packages
 map the common @R{} types (@code{integer}, @code{double},
 @code{character}, @code{logical}, @code{Date}, @code{POSIXct},
-@code{raw}) to the matching @acronym{SQL} types automatically.  Many
+@code{raw}) to matching @acronym{SQL} types where the @abbr{DBMS}
+provides them.  Many
 @abbr{DBMS}s now also offer richer types such as @code{json}, arrays
 and @code{uuid}; consult your @abbr{DBMS} documentation for the
 specifics.
@@ -1388,12 +1389,12 @@ embed R into PostgreSQL.
 
 Package @CRANpkg{mongolite} provides an @R{} interface to
 `MongoDB' (@uref{https://en.wikipedia.org/wiki/MongoDB}) databases,
-which are queried using JavaScript rather than SQL,
-using @pkg{mongodb}'s C driver.
+which are queried using JSON documents rather than SQL; it is
+based on @pkg{mongodb}'s C driver.
 
 Two helpers are worth knowing about even when they are not the main
 interface.  Package @CRANpkg{dbplyr}
-(@uref{https://dbplyr.tidyverse.org/}) is a `dplyr' back-end that
+(@uref{https://dbplyr.tidyverse.org/}) is a @CRANpkg{dplyr} back-end that
 translates ordinary @R{} data-manipulation code into @acronym{SQL} and
 sends it to a @CRANpkg{DBI} connection, so that one can work with
 remote tables almost as if they were data frames.  Package
@@ -1412,11 +1413,10 @@ Databases} and the database section of Posit's solutions site
 @cindex DBI
 
 The @CRANpkg{DBI} interface is implemented by all the back-ends listed
-above (and by the legacy @CRANpkg{RMySQL}, see @uref{https://www.mysql.com}
+above (including the legacy @CRANpkg{RMySQL}, see @uref{https://www.mysql.com}
 and @I{Dubois}, 2000).  The description below applies with minor changes
 to all of them.  The example uses @CRANpkg{RSQLite}, which embeds the
 SQLite @abbr{DBMS} into @R{} so that no server is required.
-
 
 @findex dbConnect
 @findex dbDisconnect
@@ -1488,7 +1488,7 @@ an @R{} data frame.
 
 The @CRANpkg{DBI} specification is documented in the package vignette
 (@uref{https://dbi.r-dbi.org/articles/spec.html}); see also
-@uref{https://dbplyr.tidyverse.org/} for a `dplyr' interface that
+@uref{https://dbplyr.tidyverse.org/} for a @CRANpkg{dplyr} interface that
 generates @acronym{SQL} from ordinary @R{} expressions on top of any
 @CRANpkg{DBI} connection.
 
@@ -2274,20 +2274,9 @@ Addison-Wesley.
 New Riders.
 
 @noindent
-@I{M.@: Henning} and @I{S.@: Vinoski} (1999),
-@emph{Advanced @I{CORBA} Programming with C++.}
-Addison-Wesley.
-
-@noindent
 @I{K.@: Kline} and @I{D.@: Kline} (2001),
 @emph{SQL in a Nutshell.} 
 @I{O'Reilly}.
-
-@noindent
-@I{B.@: Momjian} (2000),
-@emph{PostgreSQL: Introduction and Concepts.}
-Addison-Wesley.
-Also available at @uref{https://momjian.us/main/writings/pgsql/aw_pgsql_book/}.
 
 @noindent
 @I{B.@: D.@: Ripley} (2001),
@@ -2299,11 +2288,6 @@ Connections.
 @I{T.@: M.@: Therneau} and @I{P.@: M.@: Grambsch} (2000),
 @emph{Modeling Survival Data.  Extending the Cox Model.}
 @I{Springer-Verlag}.
-
-@noindent
-@I{E.@: J.@: Yarger}, @I{G.@: Reese} and @I{T.@ King} (1999),
-@emph{@I{MySQL & mSQL}}.
-@I{O'Reilly}.
 
 
 @node Function and variable index
